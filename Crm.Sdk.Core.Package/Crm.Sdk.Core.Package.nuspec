@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Crm.Sdk.Core</id>
+    <version>1.0.1</version>
+    <authors>Maksim Moiseev</authors>
+    <license type="expression">MIT</license>
+    <owners>develmax</owners>
+    <!--<icon>images\icon.png</icon>-->
+    <iconUrl>https://github.com/develmax/Crm.Sdk.Core/Crm.Sdk.Core.Package/icon.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>Microsoft CRM through SDK for .NET Core</description>
+    <releaseNotes>Release package</releaseNotes>
+    <tags>dynamics crm sdk core</tags>
+    <repository type="git" url="https://github.com/develmax/Crm.Sdk.Core" />
+    <dependencies>
+      <group targetFramework=".NETCoreApp2.1">
+        <dependency id="System.ServiceModel.Http" version="4.7.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\netcoreapp2.1\Microsoft.Xrm.Sdk.dll" target="lib\netcoreapp2.1\Microsoft.Xrm.Sdk.dll" />
+    <file src="bin\Release\netcoreapp2.1\Microsoft.Crm.Sdk.dll" target="lib\netcoreapp2.1\Microsoft.Crm.Sdk.dll" />
+    <file src="bin\Release\netcoreapp2.1\Microsoft.Crm.Core.dll" target="lib\netcoreapp2.1\Microsoft.Crm.Core.dll" />
+    <file src="icon.png" target="images\" />
+  </files>
+</package>

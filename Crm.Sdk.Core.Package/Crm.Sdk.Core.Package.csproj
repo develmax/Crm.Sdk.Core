@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!--<NoBuild>true</NoBuild>-->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecFile>Crm.Sdk.Core.Package.nuspec</NuspecFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Crm.Core\Microsoft.Crm.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.Crm.Sdk\Microsoft.Crm.Sdk.csproj" />
+    <ProjectReference Include="..\Microsoft.Xrm.Sdk\Microsoft.Xrm.Sdk.csproj" />
+  </ItemGroup>
+</Project>

@@ -15,9 +15,10 @@
 
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>Crm.Sdk.Core</PackageId>
-    <Authors>develmax</Authors>
-    <PackageReleaseNotes>Microsoft CRM through SDK for .NET Core</PackageReleaseNotes>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Microsoft.Xrm.Sdk</PackageId>
+    <Authors>Microsoft.Xrm.Sdk</Authors>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <RepositoryUrl></RepositoryUrl>
   </PropertyGroup>
 </Project>
