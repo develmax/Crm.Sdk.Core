@@ -476,8 +476,8 @@ namespace Microsoft.Xrm.Sdk.Client
             this.ServiceEndpoints = new ServiceEndpointDictionary
                                     {
                                         {
-                                            "BCS",
-                                            new ServiceEndpoint(new ContractDescription("IOrganizationSrvice"),
+                                            "Endpoint0",
+                                            new ServiceEndpoint(new ContractDescription("IOrganizationService"),
                                                                 binding,
                                                                 endPoint)
                                         }
