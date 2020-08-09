@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Crm.Sdk.Core</id>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <authors>Maksim Moiseev</authors>
     <license type="expression">MIT</license>
     <owners>develmax</owners>
@@ -12,7 +12,8 @@
     <description>Microsoft CRM through SDK for .NET Core</description>
     <releaseNotes>Release package</releaseNotes>
     <tags>dynamics crm sdk core</tags>
-    <repository type="git" url="https://github.com/develmax/Crm.Sdk.Core" />
+    <repository type="git" url="https://github.com/develmax/Crm.Sdk.Core.git" />
+    <projectUrl>https://github.com/develmax/Crm.Sdk.Core</projectUrl>
     <dependencies>
       <group targetFramework=".NETCoreApp2.1">
         <dependency id="System.ServiceModel.Http" version="4.7.0" exclude="Build,Analyzers" />
