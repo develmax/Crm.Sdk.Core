@@ -433,6 +433,7 @@ namespace Microsoft.Xrm.Sdk.Client
             this.ChannelFactory.Faulted += new EventHandler(this.Factory_Faulted);
             this.ChannelFactory.Opened += new EventHandler(this.Factory_Opened);
             this.ChannelFactory.Closed += new EventHandler(this.Factory_Closed);
+            this.ChannelFactory.Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
             this._serviceChannel = /*this.SecurityTokenResponse == null || this.SecurityTokenResponse.Token == null ?*/ new Microsoft.Xrm.Sdk.Client.ServiceChannel<TService>(this.ChannelFactory) /*: (Microsoft.Xrm.Sdk.Client.ServiceChannel<TService>)new ServiceFederatedChannel<TService>(this.ChannelFactory, this.SecurityTokenResponse.Token)*/;
             this._serviceChannel.Timeout = this.Timeout;
         }
