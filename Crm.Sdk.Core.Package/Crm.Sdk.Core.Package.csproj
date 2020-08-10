@@ -14,6 +14,7 @@
     <ProjectReference Include="..\Microsoft.Crm.Sdk\Microsoft.Crm.Sdk.csproj" />
     <ProjectReference Include="..\Microsoft.Xrm.Sdk\Microsoft.Xrm.Sdk.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="License" Pack="true" Visible="false" PackagePath=""/>
   </ItemGroup>
