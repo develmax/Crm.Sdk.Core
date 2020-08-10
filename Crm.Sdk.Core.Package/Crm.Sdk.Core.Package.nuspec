@@ -7,7 +7,7 @@
     <license type="expression">MIT</license>
     <owners>develmax</owners>
     <!--<icon>images\icon.png</icon>-->
-    <iconUrl>https://github.com/develmax/Crm.Sdk.Core/Crm.Sdk.Core.Package/icon.png</iconUrl>
+    <iconUrl>https://github.com/develmax/Crm.Sdk.Core/blob/master/Crm.Sdk.Core.Package/icon.png</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>Microsoft CRM through SDK for .NET Core</description>
     <releaseNotes>Release package</releaseNotes>
