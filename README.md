@@ -3,7 +3,7 @@
 ![Logo of the project](https://github.com/develmax/Crm.Sdk.Core/blob/master/Crm.Sdk.Core.Package/icon.png)
 
 [![CodeFactor](https://www.codefactor.io/repository/github/develmax/crm.sdk.core/badge)](https://www.codefactor.io/repository/github/develmax/crm.sdk.core)
-[![Travis build status](https://travis-ci.org/github/develmax/Crm.Sdk.Core.svg?branch=master)](https://travis-ci.org/github/develmax/Crm.Sdk.Core)
+[![Travis build status](https://travis-ci.org/github/develmax/crm.sdk.core.svg)](https://travis-ci.org/github/develmax/Crm.Sdk.Core)
 [![NuGet Status](https://img.shields.io/nuget/v/Crm.Sdk.Core.svg?style=flat)](https://www.nuget.org/packages/Crm.Sdk.Core/)
 
 This project was created to port the official libraries Microsoft.Xrm.Sdk and Microsoft.Crm.Sdk to work with Microsoft Dynamics CRM 2015 (and etc.) via API from .NET Core 2.1 platform. This package does not include authentication via adfs, liveid, dynamics crm365.
