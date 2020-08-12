@@ -3,6 +3,7 @@
 ![Logo of the project](https://github.com/develmax/Crm.Sdk.Core/blob/master/Crm.Sdk.Core.Package/icon.png)
 
 [![CodeFactor](https://www.codefactor.io/repository/github/develmax/crm.sdk.core/badge)](https://www.codefactor.io/repository/github/develmax/crm.sdk.core)
+[![Known Vulnerabilities](https://snyk.io/test/github/develmax/Crm.Sdk.Core/badge.svg)](https://snyk.io/test/github/develmax/Crm.Sdk.Core)
 [![Travis build status](https://api.travis-ci.org/develmax/Crm.Sdk.Core.svg?branch=master)](https://travis-ci.org/develmax/Crm.Sdk.Core?branch=master)
 [![NuGet Status](https://img.shields.io/nuget/v/Crm.Sdk.Core.svg?style=flat)](https://www.nuget.org/packages/Crm.Sdk.Core/)
 
