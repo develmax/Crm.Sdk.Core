@@ -999,7 +999,13 @@ namespace Microsoft.Xrm.Sdk.Client
                     return;
                 channelFactory.Credentials.Windows.ClientCredential = clientCredentials.Windows.ClientCredential;
                 channelFactory.Credentials.Windows.AllowedImpersonationLevel = clientCredentials.Windows.AllowedImpersonationLevel;
-                channelFactory.Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
+                channelFactory.Credentials.ServiceCertificate.SslCertificateAuthentication =
+                    new X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = X509CertificateValidationMode.None,
+                        RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck
+                    };
+                //channelFactory.Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
             }
         }
 
