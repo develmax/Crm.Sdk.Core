@@ -4,7 +4,7 @@
     <id>Crm.Sdk.Core</id>
     <version>1.0.3</version>
     <authors>Maksim Moiseev</authors>
-    <license type="expression">MIT</license>
+    <!--<license type="expression">MIT</license>-->
     <licenseUrl>https://github.com/develmax/Crm.Sdk.Core/blob/master/LICENSE.md</licenseUrl>
     <owners>develmax</owners>
     <!--<icon>images\icon.png</icon>-->
