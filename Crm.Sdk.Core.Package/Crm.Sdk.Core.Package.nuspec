@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Crm.Sdk.Core</id>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <authors>Maksim Moiseev</authors>
     <!--<license type="expression">MIT</license>-->
     <licenseUrl>https://github.com/develmax/Crm.Sdk.Core/blob/master/LICENSE.md</licenseUrl>
@@ -11,7 +11,7 @@
     <iconUrl>https://github.com/develmax/Crm.Sdk.Core/blob/master/Crm.Sdk.Core.Package/icon.png</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>Microsoft CRM through SDK for .NET Core</description>
-    <releaseNotes>Release package</releaseNotes>
+    <releaseNotes>Release package (added library Microsoft.Crm.Sdk.Proxy)</releaseNotes>
     <tags>dynamics crm sdk core</tags>
     <repository type="git" url="https://github.com/develmax/Crm.Sdk.Core.git" />
     <projectUrl>https://github.com/develmax/Crm.Sdk.Core</projectUrl>
@@ -25,6 +25,7 @@
     <file src="bin\Release\netcoreapp2.1\Microsoft.Xrm.Sdk.dll" target="lib\netcoreapp2.1\Microsoft.Xrm.Sdk.dll" />
     <file src="bin\Release\netcoreapp2.1\Microsoft.Crm.Sdk.dll" target="lib\netcoreapp2.1\Microsoft.Crm.Sdk.dll" />
     <file src="bin\Release\netcoreapp2.1\Microsoft.Crm.Core.dll" target="lib\netcoreapp2.1\Microsoft.Crm.Core.dll" />
+    <file src="bin\Release\netcoreapp2.1\Microsoft.Crm.Sdk.Proxy.dll" target="lib\netcoreapp2.1\Microsoft.Crm.Sdk.Proxy.dll" />
     <file src="icon.png" target="images\" />
   </files>
 </package>

@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Crm.Sdk.Proxy\Microsoft.Crm.Sdk.Proxy.csproj" />
     <ProjectReference Include="..\Microsoft.Xrm.Sdk\Microsoft.Xrm.Sdk.csproj" />
   </ItemGroup>
 

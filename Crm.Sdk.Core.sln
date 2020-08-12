@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crm.Sdk.Core.Test", "Crm.Sd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crm.Sdk.Core.Package", "Crm.Sdk.Core.Package\Crm.Sdk.Core.Package.csproj", "{428E9C5B-8552-442F-9A07-FB9390A649D5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Crm.Sdk.Proxy", "Microsoft.Crm.Sdk.Proxy\Microsoft.Crm.Sdk.Proxy.csproj", "{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{428E9C5B-8552-442F-9A07-FB9390A649D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{428E9C5B-8552-442F-9A07-FB9390A649D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{428E9C5B-8552-442F-9A07-FB9390A649D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

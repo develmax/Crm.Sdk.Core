@@ -67,6 +67,16 @@ namespace Crm.Sdk.Core.Test
                     Query = q
                 };
 
+                /*var n = new Microsoft.Crm.Sdk.Messages.SetStateRequest
+                {
+                    EntityMoniker =
+                        new Microsoft.Xrm.Sdk.EntityReference("lead", new Guid("c5dc1b6f-1712-e811-8229-005056977311")),
+                    State = new Microsoft.Xrm.Sdk.OptionSetValue(0),
+                    Status = new Microsoft.Xrm.Sdk.OptionSetValue(100000003)
+                };
+
+                var r = client.Execute(n);*/
+
                 var result = client.RetrieveMultiple(q);
                 //return result.Entities.Select(i => i.GetAttributeValue<string>("name"));
                 foreach (var role in result.Entities)
