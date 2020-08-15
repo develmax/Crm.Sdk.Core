@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.ServiceModel.Description;
 
 namespace Microsoft.Xrm.Sdk.Client

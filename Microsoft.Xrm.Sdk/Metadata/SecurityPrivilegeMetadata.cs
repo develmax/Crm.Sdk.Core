@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
@@ -31,8 +30,7 @@ namespace Microsoft.Xrm.Sdk.Metadata
             {
                 return this._canBeBasic;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            internal set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] internal set
             {
                 this._canBeBasic = value;
             }
@@ -47,8 +45,7 @@ namespace Microsoft.Xrm.Sdk.Metadata
             {
                 return this._canBeDeep;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            internal set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] internal set
             {
                 this._canBeDeep = value;
             }
@@ -63,8 +60,7 @@ namespace Microsoft.Xrm.Sdk.Metadata
             {
                 return this._canBeGlobal;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            internal set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] internal set
             {
                 this._canBeGlobal = value;
             }
@@ -79,8 +75,7 @@ namespace Microsoft.Xrm.Sdk.Metadata
             {
                 return this._canBeLocal;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            internal set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] internal set
             {
                 this._canBeLocal = value;
             }
@@ -96,8 +91,7 @@ namespace Microsoft.Xrm.Sdk.Metadata
             {
                 return this._name;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            internal set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] internal set
             {
                 this._name = value;
             }
@@ -112,8 +106,7 @@ namespace Microsoft.Xrm.Sdk.Metadata
             {
                 return this._privilegeId;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            internal set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] internal set
             {
                 this._privilegeId = value;
             }
@@ -128,8 +121,7 @@ namespace Microsoft.Xrm.Sdk.Metadata
             {
                 return this._privilegeType;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            internal set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] internal set
             {
                 this._privilegeType = value;
             }

@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Xrm.Sdk.Client;
+﻿using Microsoft.Xrm.Sdk.Client;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

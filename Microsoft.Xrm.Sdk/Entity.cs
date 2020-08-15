@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Microsoft.Xrm.Sdk.Client;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
-using Microsoft.Xrm.Sdk.Client;
 
 namespace Microsoft.Xrm.Sdk
 {

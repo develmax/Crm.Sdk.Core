@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Xrm.Sdk.Metadata;
+﻿using Microsoft.Xrm.Sdk.Metadata;
 using System.Runtime.Serialization;
 
 namespace Microsoft.Xrm.Sdk

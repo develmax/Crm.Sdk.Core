@@ -1,0 +1,14 @@
+﻿namespace Microsoft.Xrm.Sdk.XmlNamespaces
+{
+  internal static class V6
+  {
+    public const string Prefix = "http://schemas.microsoft.com/xrm/2013/";
+    public const string Contracts = "http://schemas.microsoft.com/xrm/2013/Contracts";
+    public const string Metadata = "http://schemas.microsoft.com/xrm/2013/Metadata";
+    public const string Workflow = "http://schemas.microsoft.com/xrm/2013/Workflow";
+    public const string Discovery = "http://schemas.microsoft.com/xrm/2013/Contracts/Discovery";
+    public const string Services = "http://schemas.microsoft.com/xrm/2013/Contracts/Services";
+    public const string Claims = "http://schemas.microsoft.com/xrm/2013/Claims";
+    public const string OrganizationEndpoint = "2011/Organization.svc";
+  }
+}

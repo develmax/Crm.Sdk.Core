@@ -1,5 +1,4 @@
 ﻿using System.Runtime.Serialization;
-using Microsoft.Xrm.Sdk.Organization;
 
 namespace Microsoft.Xrm.Sdk.Discovery
 {

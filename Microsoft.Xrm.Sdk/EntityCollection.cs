@@ -43,8 +43,7 @@ namespace Microsoft.Xrm.Sdk
                     this._entities = new DataCollection<Entity>();
                 return this._entities;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            private set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] private set
             {
                 this._entities = value;
             }

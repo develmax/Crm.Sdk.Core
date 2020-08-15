@@ -1,5 +1,4 @@
-﻿
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace Microsoft.Xrm.Sdk.Query
@@ -152,8 +151,7 @@ namespace Microsoft.Xrm.Sdk.Query
                     this._linkEntities = new DataCollection<LinkEntity>();
                 return this._linkEntities;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            private set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] private set
             {
                 this._linkEntities = value;
             }

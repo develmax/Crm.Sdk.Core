@@ -48,11 +48,11 @@ namespace Microsoft.Xrm.Sdk
 
         internal int ReturnType { get; set; }
 
-        private static IEnumerable<System.Type> GetKnownAliasedValueTypes()
+        private static IEnumerable<Type> GetKnownAliasedValueTypes()
         {
-            List<System.Type> knownTypes = new List<System.Type>();
+            List<Type> knownTypes = new List<Type>();
             KnownTypesProvider.AddKnownAttributeTypes(knownTypes);
-            return (IEnumerable<System.Type>)knownTypes;
+            return (IEnumerable<Type>)knownTypes;
         }
 
         /// <summary>ExtensionData</summary>

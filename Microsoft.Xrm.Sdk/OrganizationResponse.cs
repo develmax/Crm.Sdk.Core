@@ -6,7 +6,6 @@ namespace Microsoft.Xrm.Sdk
     /// <summary>Contains the response from a request and the base class for all organization responses.</summary>
     [SuppressMessage("Microsoft.Security", "CA9881:ClassesShouldBeSealed", Justification = "This class need to be instantiated by clients and be able to derive from it.")]
     [DataContract(Name = "OrganizationResponse", Namespace = "http://schemas.microsoft.com/xrm/2011/Contracts")]
-//    [KnownType(typeof(Microsoft.Xrm.Sdk.Messages.RetrieveMultipleResponse))]
     public class OrganizationResponse : IExtensibleDataObject
     {
         private ParameterCollection _propertyBag;

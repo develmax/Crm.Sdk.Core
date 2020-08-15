@@ -1,5 +1,4 @@
-﻿
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace Microsoft.Xrm.Sdk.Query
@@ -53,8 +52,7 @@ namespace Microsoft.Xrm.Sdk.Query
                     this._conditions = new DataCollection<ConditionExpression>();
                 return this._conditions;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            private set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] private set
             {
                 this._conditions = value;
             }
@@ -71,8 +69,7 @@ namespace Microsoft.Xrm.Sdk.Query
                     this._filters = new DataCollection<FilterExpression>();
                 return this._filters;
             }
-            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")]
-            private set
+      [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via reflection")] private set
             {
                 this._filters = value;
             }

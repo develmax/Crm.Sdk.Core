@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Xrm.Sdk.Query;
+﻿using Microsoft.Xrm.Sdk.Query;
 using System.Runtime.Serialization;
 
 namespace Microsoft.Xrm.Sdk.Metadata.Query

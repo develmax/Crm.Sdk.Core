@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Xrm.Sdk.Discovery;
+﻿using Microsoft.Xrm.Sdk.Discovery;
 using System;
 using System.Reflection;
 
