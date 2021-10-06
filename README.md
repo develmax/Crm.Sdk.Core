@@ -13,7 +13,7 @@ This project was created to port the official libraries Microsoft.Xrm.Sdk and Mi
 Crm.Sdk.Core is available from NuGet
 
 ```shell
-dotnet package install Crm.Sdk.Core
+dotnet package install Crm.Sdk.Core --version 1.0.7
 ```
 
 You can also use your favorite NuGet client.
