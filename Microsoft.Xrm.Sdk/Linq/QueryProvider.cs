@@ -27,15 +27,15 @@ namespace Microsoft.Xrm.Sdk.Linq
 		"SingleOrDefault",
 		"Distinct"
 	});
-		private static readonly IEnumerable<string> _followingSkip = _followingTake.Concat(new string[1]
+		private static readonly IEnumerable<string> _followingSkip = _followingTake.Concat(new string[]
 	{
 		"Take"
 	});
-		private static readonly IEnumerable<string> _followingSelect = _followingSkip.Concat(new string[1]
+		private static readonly IEnumerable<string> _followingSelect = _followingSkip.Concat(new string[]
 	{
 		"Skip"
 	});
-		private static readonly IEnumerable<string> _followingOrderBy = _followingSelect.Concat(new string[6]
+		private static readonly IEnumerable<string> _followingOrderBy = _followingSelect.Concat(new string[]
 	{
 		"Select",
 		"Where",
@@ -44,15 +44,15 @@ namespace Microsoft.Xrm.Sdk.Linq
 		"ThenBy",
 		"ThenByDescending"
 	});
-		private static readonly IEnumerable<string> _followingWhere = _followingOrderBy.Concat(new string[1]
+		private static readonly IEnumerable<string> _followingWhere = _followingOrderBy.Concat(new string[]
 	{
 		"SelectMany"
 	});
-		private static readonly IEnumerable<string> _followingJoin = _followingWhere.Concat(new string[1]
+		private static readonly IEnumerable<string> _followingJoin = _followingWhere.Concat(new string[]
 	{
 		"Join"
 	});
-		private static readonly IEnumerable<string> _followingGroupJoin = _followingRoot.Concat(new string[1]
+		private static readonly IEnumerable<string> _followingGroupJoin = _followingRoot.Concat(new string[]
 	{
 		"SelectMany"
 	});
@@ -130,20 +130,20 @@ namespace Microsoft.Xrm.Sdk.Linq
 		}
 	  }
 	};
-		private static readonly string[] _supportedMethods = new string[4]
+		private static readonly string[] _supportedMethods = new string[]
 	{
 	  "Equals",
 	  "Contains",
 	  "StartsWith",
 	  "EndsWith"
 	};
-		private static readonly string[] _validMethods = _supportedMethods.Concat(new string[3]
+		private static readonly string[] _validMethods = _supportedMethods.Concat(new string[]
 	{
 		"Compare",
 		"Like",
 		"GetValueOrDefault"
 	}).ToArray();
-		private static readonly string[] _validProperties = new string[2]
+		private static readonly string[] _validProperties = new string[]
 	{
 	  "Id",
 	  "Value"
@@ -446,18 +446,13 @@ namespace Microsoft.Xrm.Sdk.Linq
 				throw new ArgumentException("Invalid request", nameof(request));
 			}
 
-			EntityCollection entityCollection;
 			if (source != null)
 			{
 				var retrieveResponse = (RetrieveResponse)OrganizationServiceContext.Execute(request);
-				entityCollection = retrieveResponse.Entity.RelatedEntities.Contains(source.Relationship) ? retrieveResponse.Entity.RelatedEntities[source.Relationship] : null;
-			}
-			else
-			{
-				entityCollection = ((RetrieveMultipleResponse) OrganizationServiceContext.Execute(request)).EntityCollection;
+				return retrieveResponse.Entity.RelatedEntities.Contains(source.Relationship) ? retrieveResponse.Entity.RelatedEntities[source.Relationship] : null;
 			}
 
-			return entityCollection;
+			return ((RetrieveMultipleResponse) OrganizationServiceContext.Execute(request)).EntityCollection;
 		}
 
 		private static string ResetPagingNumber(string pagingCookie, int newPage)
@@ -501,8 +496,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			var pageInfo = qe.PageInfo;
 			EntityCollection entityCollection = null;
 			var pageNumber = pageInfo.PageNumber;
-			var count = pageInfo.Count;
-			var num1 = count > RetrievalUpperLimitWithoutPagingCookie ? RetrievalUpperLimitWithoutPagingCookie : count;
+			var count = Math.Min(pageInfo.Count, RetrievalUpperLimitWithoutPagingCookie);
 			if (pageNumber > 0)
 			{
 				var num2 = pageNumber / RetrievalUpperLimitWithoutPagingCookie;
@@ -516,7 +510,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 						if (IsPagingCookieNull(entityCollection))
 						{
 							pageInfo.PageNumber = pageNumber;
-							pageInfo.Count = num1;
+							pageInfo.Count = count;
 							return false;
 						}
 						if (entityCollection != null && !entityCollection.MoreRecords)
@@ -533,7 +527,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 					if (IsPagingCookieNull(entityCollection))
 					{
 						pageInfo.PageNumber = pageNumber;
-						pageInfo.Count = num1;
+						pageInfo.Count = count;
 						return false;
 					}
 					if (entityCollection != null && !entityCollection.MoreRecords)
@@ -544,7 +538,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 				}
 				pageInfo.PagingCookie = ResetPagingNumber(entityCollection.PagingCookie, 1);
 				pageInfo.PageNumber = 2;
-				pageInfo.Count = num1;
+				pageInfo.Count = count;
 			}
 			if (pageInfo.PageNumber == 0)
 			{
@@ -1785,11 +1779,15 @@ namespace Microsoft.Xrm.Sdk.Linq
 		protected virtual void TranslateEntityName(QueryExpression qe, Expression expression, MethodCallExpression mce)
 		{
 			if (qe.EntityName != null)
+			{
 				return;
+			}
+
 			var constantExpression = expression is MethodCallExpression ? expression.GetMethodsPreorder().Last().Arguments[0] as ConstantExpression : expression as ConstantExpression;
-			if (!(constantExpression?.Value is IEntityQuery entityQuery))
-				return;
-			qe.EntityName = entityQuery.EntityLogicalName;
+			if (constantExpression?.Value is IEntityQuery entityQuery)
+			{
+				qe.EntityName = entityQuery.EntityLogicalName;
+			}
 		}
 
 		protected sealed class NavigationSource
