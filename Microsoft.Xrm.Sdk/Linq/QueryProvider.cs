@@ -14,258 +14,129 @@ using System.Security.Permissions;
 
 namespace Microsoft.Xrm.Sdk.Linq
 {
-	internal class QueryProvider : IQueryProvider
+	internal sealed class QueryProvider : IQueryProvider
 	{
 		private static readonly string[] _followingRoot = new string[1];
-		private static readonly string[] _followingFirst = _followingRoot.Concat(new[] {"ToList"}).ToArray();
+		private static readonly IEnumerable<string> _followingFirst = _followingRoot.Concat(new[] {nameof(Enumerable.ToList) });
 		private static readonly IEnumerable<string> _followingTake = _followingFirst.Concat(new[]
-	{
-		"Select",
-		"First",
-		"FirstOrDefault",
-		"Single",
-		"SingleOrDefault",
-		"Distinct"
-	});
-		private static readonly IEnumerable<string> _followingSkip = _followingTake.Concat(new string[]
-	{
-		"Take"
-	});
-		private static readonly IEnumerable<string> _followingSelect = _followingSkip.Concat(new string[]
-	{
-		"Skip"
-	});
-		private static readonly IEnumerable<string> _followingOrderBy = _followingSelect.Concat(new string[]
-	{
-		"Select",
-		"Where",
-		"OrderBy",
-		"OrderByDescending",
-		"ThenBy",
-		"ThenByDescending"
-	});
-		private static readonly IEnumerable<string> _followingWhere = _followingOrderBy.Concat(new string[]
-	{
-		"SelectMany"
-	});
-		private static readonly IEnumerable<string> _followingJoin = _followingWhere.Concat(new string[]
-	{
-		"Join"
-	});
-		private static readonly IEnumerable<string> _followingGroupJoin = _followingRoot.Concat(new string[]
-	{
-		"SelectMany"
-	});
-		private static readonly Dictionary<string, IEnumerable<string>> _followingMethodLookup = new Dictionary<string, IEnumerable<string>>()
-	{
-	  {
-		"Join",
-		_followingJoin
-	  },
-	  {
-		"GroupJoin",
-		_followingGroupJoin
-	  },
-	  {
-		"Where",
-		_followingWhere
-	  },
-	  {
-		"OrderBy",
-		_followingOrderBy
-	  },
-	  {
-		"OrderByDescending",
-		_followingOrderBy
-	  },
-	  {
-		"ThenBy",
-		_followingOrderBy
-	  },
-	  {
-		"ThenByDescending",
-		_followingOrderBy
-	  },
-	  {
-		"Select",
-		_followingSelect
-	  },
-	  {
-		"Skip",
-		_followingSkip
-	  },
-	  {
-		"Take",
-		_followingTake
-	  },
-	  {
-		"First",
-		_followingFirst
-	  },
-	  {
-		"FirstOrDefault",
-		_followingFirst
-	  },
-	  {
-		"Single",
-		_followingFirst
-	  },
-	  {
-		"SingleOrDefault",
-		_followingFirst
-	  },
-	  {
-		"SelectMany",
-		_followingOrderBy
-	  },
-	  {
-		"Distinct",
-		_followingSkip
-	  },
-	  {
-		"Cast",
-		new string[1]
 		{
-			"Select"
-		}
-	  }
-	};
-		private static readonly string[] _supportedMethods = new string[]
-	{
-	  "Equals",
-	  "Contains",
-	  "StartsWith",
-	  "EndsWith"
-	};
-		private static readonly string[] _validMethods = _supportedMethods.Concat(new string[]
-	{
-		"Compare",
-		"Like",
-		"GetValueOrDefault"
-	}).ToArray();
-		private static readonly string[] _validProperties = new string[]
-	{
-	  "Id",
-	  "Value"
-	};
-		private static readonly Dictionary<ExpressionType, ConditionOperator> _conditionLookup = new Dictionary<ExpressionType, ConditionOperator>()
-	{
-	  {
-		ExpressionType.Equal,
-		ConditionOperator.Equal
-	  },
-	  {
-		ExpressionType.GreaterThan,
-		ConditionOperator.GreaterThan
-	  },
-	  {
-		ExpressionType.GreaterThanOrEqual,
-		ConditionOperator.GreaterEqual
-	  },
-	  {
-		ExpressionType.LessThan,
-		ConditionOperator.LessThan
-	  },
-	  {
-		ExpressionType.LessThanOrEqual,
-		ConditionOperator.LessEqual
-	  },
-	  {
-		ExpressionType.NotEqual,
-		ConditionOperator.NotEqual
-	  }
-	};
-		private static readonly Dictionary<ConditionOperator, ConditionOperator> _operatorNegationLookup = new Dictionary<ConditionOperator, ConditionOperator>()
-	{
-	  {
-		ConditionOperator.Equal,
-		ConditionOperator.NotEqual
-	  },
-	  {
-		ConditionOperator.NotEqual,
-		ConditionOperator.Equal
-	  },
-	  {
-		ConditionOperator.GreaterThan,
-		ConditionOperator.LessEqual
-	  },
-	  {
-		ConditionOperator.GreaterEqual,
-		ConditionOperator.LessThan
-	  },
-	  {
-		ConditionOperator.LessThan,
-		ConditionOperator.GreaterEqual
-	  },
-	  {
-		ConditionOperator.LessEqual,
-		ConditionOperator.GreaterThan
-	  },
-	  {
-		ConditionOperator.Like,
-		ConditionOperator.NotLike
-	  },
-	  {
-		ConditionOperator.NotLike,
-		ConditionOperator.Like
-	  },
-	  {
-		ConditionOperator.Null,
-		ConditionOperator.NotNull
-	  },
-	  {
-		ConditionOperator.NotNull,
-		ConditionOperator.Null
-	  }
-	};
-		private static readonly Dictionary<ExpressionType, LogicalOperator> _booleanLookup = new Dictionary<ExpressionType, LogicalOperator>()
-	{
-	  {
-		ExpressionType.And,
-		LogicalOperator.And
-	  },
-	  {
-		ExpressionType.Or,
-		LogicalOperator.Or
-	  },
-	  {
-		ExpressionType.AndAlso,
-		LogicalOperator.And
-	  },
-	  {
-		ExpressionType.OrElse,
-		LogicalOperator.Or
-	  }
-	};
-		private static readonly Dictionary<LogicalOperator, LogicalOperator> _logicalOperatorNegationLookup = new Dictionary<LogicalOperator, LogicalOperator>()
-	{
-	  {
-		LogicalOperator.And,
-		LogicalOperator.Or
-	  },
-	  {
-		LogicalOperator.Or,
-		LogicalOperator.And
-	  }
-	};
+			nameof(Queryable.Select),
+			nameof(Queryable.First),
+			nameof(Queryable.FirstOrDefault),
+			nameof(Queryable.Single),
+			nameof(Queryable.SingleOrDefault),
+			nameof(Queryable.Distinct)
+		});
+		private static readonly IEnumerable<string> _followingSkip = _followingTake.Concat(new[]
+		{
+			nameof(Queryable.Take)
+		});
+		private static readonly IEnumerable<string> _followingSelect = _followingSkip.Concat(new[]
+		{
+			nameof(Queryable.Skip)
+		});
+		private static readonly IEnumerable<string> _followingOrderBy = _followingSelect.Concat(new[]
+		{
+			nameof(Queryable.Select),
+			nameof(Queryable.Where),
+			nameof(Queryable.OrderBy),
+			nameof(Queryable.OrderByDescending),
+			nameof(Queryable.ThenBy),
+			nameof(Queryable.ThenByDescending)
+		});
+		private static readonly IEnumerable<string> _followingWhere = _followingOrderBy.Concat(new[]
+		{
+			nameof(Queryable.SelectMany)
+		});
+		private static readonly IEnumerable<string> _followingJoin = _followingWhere.Concat(new[]
+		{
+			nameof(Queryable.Join)
+		});
+		private static readonly IEnumerable<string> _followingGroupJoin = _followingRoot.Concat(new[]
+		{
+			nameof(Queryable.SelectMany)
+		});
+		private static readonly Dictionary<string, HashSet<string>> _followingMethodLookup = new Dictionary<string, HashSet<string>>
+		{
+			{nameof(Queryable.Join), _followingJoin.ToHashSet()},
+			{nameof(Queryable.GroupJoin), _followingGroupJoin.ToHashSet()},
+			{nameof(Queryable.Where), _followingWhere.ToHashSet()},
+			{nameof(Queryable.OrderBy), _followingOrderBy.ToHashSet()},
+			{nameof(Queryable.OrderByDescending), _followingOrderBy.ToHashSet()},
+			{nameof(Queryable.ThenBy), _followingOrderBy.ToHashSet()},
+			{nameof(Queryable.ThenByDescending), _followingOrderBy.ToHashSet()},
+			{nameof(Queryable.Select), _followingSelect.ToHashSet()},
+			{nameof(Queryable.Skip), _followingSkip.ToHashSet()},
+			{nameof(Queryable.Take), _followingTake.ToHashSet()},
+			{nameof(Queryable.First), _followingFirst.ToHashSet()},
+			{nameof(Queryable.FirstOrDefault), _followingFirst.ToHashSet()},
+			{nameof(Queryable.Single), _followingFirst.ToHashSet()},
+			{nameof(Queryable.SingleOrDefault), _followingFirst.ToHashSet()},
+			{nameof(Queryable.SelectMany), _followingOrderBy.ToHashSet()},
+			{nameof(Queryable.Distinct), _followingSkip.ToHashSet()},
+			{nameof(Queryable.Cast), new[] {"Select"}.ToHashSet()}
+		};
+		private static readonly string[] _supportedMethods = 
+		{
+			"Equals",
+			"Contains",
+			"StartsWith",
+			"EndsWith"
+		};
+		private static readonly HashSet<string> _validMethods = _supportedMethods.Concat(new[]
+		{
+			"Compare",
+			"Like",
+			"GetValueOrDefault"
+		}).ToHashSet();
+		private static readonly string[] _validProperties = {"Id", "Value"};
+		private static readonly Dictionary<ExpressionType, ConditionOperator> _conditionLookup = new Dictionary<ExpressionType, ConditionOperator>
+		{
+			{ExpressionType.Equal, ConditionOperator.Equal},
+			{ExpressionType.GreaterThan, ConditionOperator.GreaterThan},
+			{ExpressionType.GreaterThanOrEqual, ConditionOperator.GreaterEqual},
+			{ExpressionType.LessThan, ConditionOperator.LessThan},
+			{ExpressionType.LessThanOrEqual, ConditionOperator.LessEqual},
+			{ExpressionType.NotEqual, ConditionOperator.NotEqual}
+		};
+		private static readonly Dictionary<ConditionOperator, ConditionOperator> _operatorNegationLookup = new Dictionary<ConditionOperator, ConditionOperator>
+		{
+			{ConditionOperator.Equal, ConditionOperator.NotEqual},
+			{ConditionOperator.NotEqual, ConditionOperator.Equal},
+			{ConditionOperator.GreaterThan, ConditionOperator.LessEqual},
+			{ConditionOperator.GreaterEqual, ConditionOperator.LessThan},
+			{ConditionOperator.LessThan, ConditionOperator.GreaterEqual},
+			{ConditionOperator.LessEqual, ConditionOperator.GreaterThan},
+			{ConditionOperator.Like, ConditionOperator.NotLike},
+			{ConditionOperator.NotLike, ConditionOperator.Like},
+			{ConditionOperator.Null, ConditionOperator.NotNull},
+			{ConditionOperator.NotNull, ConditionOperator.Null}
+		};
+		private static readonly Dictionary<ExpressionType, LogicalOperator> _booleanLookup = new Dictionary<ExpressionType, LogicalOperator>
+		{
+			{ExpressionType.And, LogicalOperator.And},
+			{ExpressionType.Or, LogicalOperator.Or},
+			{ExpressionType.AndAlso, LogicalOperator.And},
+			{ExpressionType.OrElse, LogicalOperator.Or}
+		};
+		private static readonly Dictionary<LogicalOperator, LogicalOperator> _logicalOperatorNegationLookup = new Dictionary<LogicalOperator, LogicalOperator>
+		{
+			{LogicalOperator.And, LogicalOperator.Or},
+			{LogicalOperator.Or, LogicalOperator.And}
+		};
 
 		public QueryProvider(OrganizationServiceContext context)
 		{
 			OrganizationServiceContext = context;
 		}
 
-		protected OrganizationServiceContext OrganizationServiceContext { get; }
+		private OrganizationServiceContext OrganizationServiceContext { get; }
 
 		private IQueryable CreateQuery(Type entityType)
 		{
 			CheckEntitySubclass(entityType);
 			var nameForType = KnownProxyTypesProvider.GetInstance(true).GetNameForType(entityType);
-			return CreateQueryInstance(entityType, new object[2] {this, nameForType});
-		}
-
-		private IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-		{
-			return new Query<TElement>(this, expression);
+			return CreateQueryInstance(entityType, new object[] {this, nameForType});
 		}
 
 		private IQueryable CreateQuery(Expression expression)
@@ -273,16 +144,21 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return CreateQueryInstance(expression.Type.GetGenericArguments()[0], new object[] {this, expression});
 		}
 
-		IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression)
-		{
-			ClientExceptionHelper.ThrowIfNull(expression, nameof(expression));
-			return CreateQuery<TElement>(expression);
-		}
-
 		IQueryable IQueryProvider.CreateQuery(Expression expression)
 		{
 			ClientExceptionHelper.ThrowIfNull(expression, nameof(expression));
 			return CreateQuery(expression);
+		}
+
+		private IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+		{
+			return new Query<TElement>(this, expression);
+		}
+
+		IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression)
+		{
+			ClientExceptionHelper.ThrowIfNull(expression, nameof(expression));
+			return CreateQuery<TElement>(expression);
 		}
 
 		TResult IQueryProvider.Execute<TResult>(Expression expression)
@@ -297,7 +173,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return Execute<object>(expression).FirstOrDefault();
 		}
 
-		public virtual IEnumerator<TElement> GetEnumerator<TElement>(Expression expression)
+		public IEnumerator<TElement> GetEnumerator<TElement>(Expression expression)
 		{
 			return Execute<TElement>(expression).GetEnumerator();
 		}
@@ -334,14 +210,14 @@ namespace Microsoft.Xrm.Sdk.Linq
 			throw new ArgumentException($"The specified type '{entityType}' is not a known entity type.");
 		}
 
-		public IEnumerable<TElement> Execute<TElement>(Expression expression)
+		private IEnumerable<TElement> Execute<TElement>(Expression expression)
 		{
 			NavigationSource source = null;
 			var linkLookups = new List<LinkLookup>();
 			return Execute<TElement>(GetQueryExpression(expression, out var throwIfSequenceIsEmpty, out var throwIfSequenceNotSingle, out var projection, ref source, ref linkLookups), throwIfSequenceIsEmpty, throwIfSequenceNotSingle, projection, source, linkLookups);
 		}
 
-		protected IEnumerable<TElement> Execute<TElement>(QueryExpression qe, bool throwIfSequenceIsEmpty, bool throwIfSequenceNotSingle, Projection projection, NavigationSource source, List<LinkLookup> linkLookups)
+		private IEnumerable<TElement> Execute<TElement>(QueryExpression qe, bool throwIfSequenceIsEmpty, bool throwIfSequenceNotSingle, Projection projection, NavigationSource source, List<LinkLookup> linkLookups)
 		{
 			return new PagedItemCollection<TElement>(Execute(qe, throwIfSequenceIsEmpty, throwIfSequenceNotSingle, projection, source, linkLookups, out var pagingCookie, out var moreRecords).Cast<TElement>(), qe, pagingCookie, moreRecords);
 		}
@@ -354,7 +230,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			OrganizationRequest request;
 			if (source != null)
 			{
-				request = new RetrieveRequest()
+				request = new RetrieveRequest
 				{
 					Target = source.Target,
 					ColumnSet = new ColumnSet(),
@@ -363,7 +239,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 			else
 			{
-				request = new RetrieveMultipleRequest()
+				request = new RetrieveMultipleRequest
 				{
 					Query = qe
 				};
@@ -586,7 +462,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return entityCollection2;
 		}
 
-		protected virtual int RetrievalUpperLimitWithoutPagingCookie => 5000;
+		private int RetrievalUpperLimitWithoutPagingCookie => 5000;
 
 		private IEnumerable ExecuteAnonymousType(IEnumerable<Entity> entities, Projection projection, List<LinkLookup> linkLookups)
 		{
@@ -674,10 +550,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 				return parameters.Select(parameter => BuildProjection(null, projection.MethodName, parameter.Type, entity, linkLookups)).ToArray();
 			}
 
-			return new object[2]
+			return new[]
 			{
-		linkLookups[1].Link.JoinOperator == JoinOperator.LeftOuter ? BuildProjection(null, projection.MethodName, parameters[0].Type, entity, linkLookups) : entity,
-		BuildProjectionParameter(parameters[1].Type, entity, linkLookups[1])
+				linkLookups[1].Link.JoinOperator == JoinOperator.LeftOuter ? BuildProjection(null, projection.MethodName, parameters[0].Type, entity, linkLookups) : entity,
+				BuildProjectionParameter(parameters[1].Type, entity, linkLookups[1])
 			};
 		}
 
@@ -707,19 +583,19 @@ namespace Microsoft.Xrm.Sdk.Linq
 			{
 				var obj1 = BuildProjectionParameter(parameterInfo1, environment, projectingMethodName, parameterInfo1.ParameterType, entity, linkLookups);
 				var obj2 = BuildProjectionParameter(parameterInfo2, environment, projectingMethodName, parameterInfo2.ParameterType, entity, linkLookups);
-				return ConstructorInvoke(ci, new object[2] {obj1, obj2});
+				return ConstructorInvoke(ci, new[] {obj1, obj2});
 			}
 			if (IsEntity(parameterInfo2.ParameterType))
 			{
 				var obj1 = BuildProjectionParameter(parameterInfo1, environment, projectingMethodName, entity, linkLookups);
 				var obj2 = BuildProjectionParameter(parameterInfo2, environment, projectingMethodName, parameterInfo2.ParameterType, entity, linkLookups);
-				return ConstructorInvoke(ci, new object[2] {obj1, obj2});
+				return ConstructorInvoke(ci, new[] {obj1, obj2});
 			}
 			if (IsEntity(parameterInfo1.ParameterType))
 			{
 				var obj1 = BuildProjectionParameter(parameterInfo1, environment, projectingMethodName, parameterInfo1.ParameterType, entity, linkLookups);
 				var obj2 = BuildProjectionParameter(parameterInfo2, environment, projectingMethodName, entity, linkLookups);
-				return ConstructorInvoke(ci, new object[2] {obj1, obj2});
+				return ConstructorInvoke(ci, new[] {obj1, obj2});
 			}
 			throw new InvalidOperationException($"Invalid left '{parameterInfo1.ParameterType.Name}' and right '{parameterInfo2.ParameterType.Name}' parameters.");
 		}
@@ -752,19 +628,18 @@ namespace Microsoft.Xrm.Sdk.Linq
 				return entity;
 			}
 
-			var entity1 = entityType == typeof (Entity) ? new Entity(link.Link.LinkToEntityName) : Activator.CreateInstance(entityType) as Entity;
+			var entity1 = entityType == typeof (Entity) ? new Entity(link.Link.LinkToEntityName) : (Entity)Activator.CreateInstance(entityType);
 			var entityAlias = $"{link.Link.EntityAlias}.";
 			var aliasIndex = entityAlias.Length;
-			foreach (var data in entity.Attributes
-				.Where(a => a.Value is AliasedValue && a.Key.StartsWith(entityAlias, StringComparison.Ordinal)).Select(
-					a => new
-					{
-						Key = a.Key.Substring(aliasIndex),
-						Value = (a.Value as AliasedValue).Value
-					}))
+
+			foreach (var attribute in entity.Attributes)
 			{
-				entity1.Attributes.Add(data.Key, data.Value);
+				if (attribute.Value is AliasedValue value && attribute.Key.StartsWith(entityAlias, StringComparison.Ordinal))
+				{
+					entity1.Attributes.Add(attribute.Key.Substring(aliasIndex), value);
+				}
 			}
+
 			return entity1;
 		}
 
@@ -773,12 +648,12 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return environment == null ? pi.Name : $"{environment}.{pi.Name}";
 		}
 
-		protected virtual bool IsValidFollowingMethod(string method, string next)
+		private bool IsValidFollowingMethod(string method, string next)
 		{
 			return _followingMethodLookup.TryGetValue(method, out var source) && source.Contains(next);
 		}
 
-		private bool IsValidMethod(string method)
+		private bool IsSupportedMethod(string method)
 		{
 			return _followingMethodLookup.ContainsKey(method);
 		}
@@ -788,82 +663,112 @@ namespace Microsoft.Xrm.Sdk.Linq
 			throwIfSequenceIsEmpty = false;
 			throwIfSequenceNotSingle = false;
 			projection = null;
-			var skipVal = new int?();
-			var takeVal = new int?();
+			var skip = new int?();
+			var take = new int?();
 			var qe = new QueryExpression();
 			var list = expression.GetMethodsPostorder().ToList();
-			var isFirstJoin = list.Count > 0 && (list[0].Method.Name == "Join" || list[0].Method.Name == "GroupJoin");
+			var isFirstJoin = list.Count > 0 && (list[0].Method.Name == nameof(Queryable.Join) || list[0].Method.Name == nameof(Queryable.GroupJoin));
+			string beforeMethodName = null;
 			for (var i = 0; i < list.Count; ++i)
 			{
 				var mce = list[i];
-				var name1 = mce.Method.Name;
-				if (!IsValidMethod(name1))
+				var methodName = mce.Method.Name;
+				if (!IsSupportedMethod(methodName))
 				{
-					throw new NotSupportedException($"The method '{name1}' is not supported.");
+					throw new NotSupportedException($"The method '{methodName}' is not supported.");
 				}
 
-				if (i > 0)
+				if (beforeMethodName != null && !IsValidFollowingMethod(beforeMethodName, methodName))
 				{
-					var name2 = list[i - 1].Method.Name;
-					if (!IsValidFollowingMethod(name2, name1))
-					{
-						throw new NotSupportedException($"The method '{name1}' cannot follow the method '{name2}' or is not supported. Try writing the query in terms of supported methods or call the 'AsEnumerable' or 'ToList' method before calling unsupported methods.");
-					}
+					throw new NotSupportedException($"The method '{methodName}' cannot follow the method '{beforeMethodName}' or is not supported. Try writing the query in terms of supported methods or call the 'AsEnumerable' or 'ToList' method before calling unsupported methods.");
 				}
-				switch (name1)
+				beforeMethodName = methodName;
+
+				switch (methodName)
 				{
-					case "Join":
+					case nameof(Queryable.Join):
 						TranslateJoin(qe, list, ref i, out projection, out linkLookups);
 						break;
-					case "GroupJoin":
+					case nameof(Queryable.GroupJoin):
 						TranslateGroupJoin(qe, list, ref i, out projection, out linkLookups);
 						break;
-					case "FirstOrDefault":
-					case "SingleOrDefault":
-					case "First":
-					case "Single":
-					case "Where":
-						if (name1 != "Where")
+					case nameof(Queryable.FirstOrDefault):
+					{
+						var methodData = GetMethodCallBody(mce);
+						if (methodData.Body == null)
 						{
-							takeVal = 1;
+							break;
 						}
-
-						if (name1 == "First" || name1 == "Single")
-						{
-							throwIfSequenceIsEmpty = true;
-						}
-
-						if (name1 == "SingleOrDefault" || name1 == "Single")
-						{
-							takeVal = 2;
-							throwIfSequenceNotSingle = true;
-						}
-
-						var methodCallBody1 = GetMethodCallBody(mce, out var parameterName1);
-						if (methodCallBody1 != null)
-						{
-							TranslateWhere(qe, parameterName1, methodCallBody1, linkLookups);
-						}
+						TranslateWhere(qe, methodData.parameterName, methodData.Body, linkLookups);
 						break;
-					case "OrderBy":
-					case "ThenBy":
-						var methodCallBody2 = GetMethodCallBody(mce, out var parameterName2);
-						TranslateOrderBy(qe, methodCallBody2, OrderType.Ascending, parameterName2, linkLookups);
+					}
+					case nameof(Queryable.SingleOrDefault):
+					{
+						take = 2;
+						throwIfSequenceNotSingle = true;
+
+						var methodData = GetMethodCallBody(mce);
+						if (methodData.Body == null)
+						{
+							break;
+						}
+						TranslateWhere(qe, methodData.parameterName, methodData.Body, linkLookups);
 						break;
-					case "OrderByDescending":
-					case "ThenByDescending":
-						var methodCallBody3 = GetMethodCallBody(mce, out var parameterName3);
-						TranslateOrderBy(qe, methodCallBody3, OrderType.Descending, parameterName3, linkLookups);
+					}
+					case nameof(Queryable.First):
+					{
+						throwIfSequenceIsEmpty = true;
+						var methodData = GetMethodCallBody(mce);
+						if (methodData.Body == null)
+						{
+							break;
+						}
+						TranslateWhere(qe, methodData.parameterName, methodData.Body, linkLookups);
 						break;
-					case "Select":
+					}
+					case nameof(Queryable.Single):
+					{
+						throwIfSequenceIsEmpty = true;
+						take = 2;
+						throwIfSequenceNotSingle = true;
+						var methodData = GetMethodCallBody(mce);
+						if (methodData.Body == null)
+						{
+							break;
+						}
+						TranslateWhere(qe, methodData.parameterName, methodData.Body, linkLookups);
+						break;
+					}
+					case nameof(Queryable.Where):
+					{
+						take = 1;
+						var methodData = GetMethodCallBody(mce);
+						TranslateWhere(qe, methodData.parameterName, methodData.Body, linkLookups);
+						break;
+					}
+					case nameof(Queryable.OrderBy):
+					case nameof(Queryable.ThenBy):
+					{	
+						var methodData = GetMethodCallBody(mce);
+						TranslateOrderBy(qe, methodData.Body, methodData.parameterName, OrderType.Ascending, linkLookups);
+						break;
+					}
+					case nameof(Queryable.OrderByDescending):
+					case nameof(Queryable.ThenByDescending):
+					{	
+						var methodData = GetMethodCallBody(mce);
+						TranslateOrderBy(qe, methodData.Body, methodData.parameterName, OrderType.Descending, linkLookups);
+						break;
+					}
+					case nameof(Queryable.Select):
 						if (linkLookups != null && !isFirstJoin)
 						{
 							linkLookups.Clear();
 						}
 
-						TranslateEntityName(qe, expression, mce);
+						TranslateEntityName(qe, expression);
 						var operand1 = (mce.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
-						projection = new Projection(name1, operand1);
+						projection = new Projection(methodName, operand1);
 						var expression1 = TranslateSelect(list, i, qe, operand1, ref source);
 						if (expression1 != null)
 						{
@@ -871,62 +776,61 @@ namespace Microsoft.Xrm.Sdk.Linq
 						}
 
 						break;
-					case "Skip":
-						skipVal = (int)(mce.Arguments[1] as ConstantExpression).Value;
-						if (skipVal.HasValue)
+					case nameof(Queryable.Skip):
+						skip = (int)(mce.Arguments[1] as ConstantExpression).Value;
+						if (skip.HasValue)
 						{
-							var nullable = skipVal;
+							var nullable = skip;
 							if ((nullable.GetValueOrDefault() >= 0 ? 0 : nullable.HasValue ? 1 : 0) != 0)
 							{
 								throw new NotSupportedException("Skip operator does not support negative values.");
 							}
 						}
 						break;
-					case "Take":
-						takeVal = (int)(mce.Arguments[1] as ConstantExpression).Value;
-						if (takeVal.HasValue)
+					case nameof(Queryable.Take):
+						take = (int)(mce.Arguments[1] as ConstantExpression).Value;
+						if (take.HasValue)
 						{
-							var nullable = takeVal;
+							var nullable = take;
 							if ((nullable.GetValueOrDefault() > 0 ? 0 : nullable.HasValue ? 1 : 0) != 0)
 							{
 								throw new NotSupportedException("Take/Top operators only support positive values.");
 							}
 						}
 						break;
-					case "Distinct":
+					case nameof(Enumerable.Distinct):
 						qe.Distinct = true;
 						break;
-					case "SelectMany":
+					case nameof(Queryable.SelectMany):
 						if (linkLookups != null && !isFirstJoin)
 						{
 							linkLookups.Clear();
 						}
 
-						TranslateEntityName(qe, expression, mce);
+						TranslateEntityName(qe, expression);
 						var operand2 = (mce.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
 						return GetQueryExpression(TranslateSelectMany(list, i, qe, operand2, ref source), out throwIfSequenceIsEmpty, out throwIfSequenceNotSingle, out projection, ref source, ref linkLookups);
 				}
 			}
+
 			if (projection != null)
 			{
 				TranslateSelect(qe, projection.Expression, linkLookups);
 				FixOrderBy(qe, projection.Expression);
 			}
-			if (!BuildPagingInfo(qe, skipVal, takeVal))
-			{
-				throw new NotSupportedException("The 'Skip' value must be a multiple of the 'Take/Top' value.");
-			}
+
+			BuildPagingInfo(qe, skip, take);
 
 			FixEntityName(qe, expression);
 			FixColumnSet(qe);
 			return qe;
 		}
 
-		protected virtual bool BuildPagingInfo(QueryExpression qe, int? skipVal, int? takeVal)
+		private void BuildPagingInfo(QueryExpression qe, int? skip, int? take)
 		{
-			if (!skipVal.HasValue && !takeVal.HasValue)
+			if (!skip.HasValue && !take.HasValue)
 			{
-				return true;
+				return;
 			}
 
 			if (qe.PageInfo == null)
@@ -934,29 +838,27 @@ namespace Microsoft.Xrm.Sdk.Linq
 				qe.PageInfo = new PagingInfo();
 			}
 
-			if (skipVal > 0)
+			if (skip > 0)
 			{
-				qe.PageInfo.PageNumber = skipVal.Value;
+				qe.PageInfo.PageNumber = skip.Value;
 			}
 
-			if (takeVal > 0)
+			if (take > 0)
 			{
-				qe.PageInfo.Count = takeVal.Value;
+				qe.PageInfo.Count = take.Value;
 			}
-
-			return true;
 		}
 
-		protected virtual void FixOrderBy(QueryExpression qe, LambdaExpression exp)
+		private void FixOrderBy(QueryExpression qe, LambdaExpression exp)
 		{
 		}
 
-		protected virtual void FixEntityName(QueryExpression qe, Expression expression)
+		private void FixEntityName(QueryExpression qe, Expression expression)
 		{
-			TranslateEntityName(qe, expression, null);
+			TranslateEntityName(qe, expression);
 		}
 
-		protected virtual void FixColumnSet(QueryExpression qe)
+		private void FixColumnSet(QueryExpression qe)
 		{
 			qe.ColumnSet = qe.ColumnSet == null || qe.ColumnSet.Columns.Count == 0 ? new ColumnSet(true) : qe.ColumnSet;
 		}
@@ -984,25 +886,28 @@ namespace Microsoft.Xrm.Sdk.Linq
 				var operand1 = (method.Arguments[2] as UnaryExpression).Operand as LambdaExpression;
 				var name1 = operand1.Parameters.First().Name;
 				var entityExpression = FindValidEntityExpression(operand1.Body, "join");
-				var attributeName1 = TranslateExpressionToAttributeName(entityExpression, false, out _);
+				var attributeName1 = TranslateExpressionToAttributeName(entityExpression, out _);
 				var operand2 = (method.Arguments[3] as UnaryExpression).Operand as LambdaExpression;
 				var name2 = operand2.Parameters.First().Name;
-				var attributeName2 = TranslateExpressionToAttributeName(FindValidEntityExpression(operand2.Body, "join"), false, out _);
+				var attributeName2 = TranslateExpressionToAttributeName(FindValidEntityExpression(operand2.Body, "join"), out _);
 				var entityLogicalName = ((method.Arguments[1] as ConstantExpression).Value as IEntityQuery).EntityLogicalName;
 				LinkEntity linkEntity1;
 				if (source == null)
 				{
 					qe.EntityName = ((method.Arguments[0] as ConstantExpression).Value as IEntityQuery).EntityLogicalName;
-					source = new List<Tuple<string, string, LinkEntity, string>>()
-		  {
-			new Tuple<string, string, LinkEntity, string>(environment, environment, null, name1)
-		  };
+					source = new List<Tuple<string, string, LinkEntity, string>>
+					{
+						new Tuple<string, string, LinkEntity, string>(environment, environment, null, name1)
+					};
 					linkEntity1 = qe.AddLink(entityLogicalName, attributeName1, attributeName2, JoinOperator.Inner);
 				}
 				else
 				{
 					if (environment != null)
+					{
 						source = source.Select(l => new Tuple<string, string, LinkEntity, string>(l.Item1, environment + "." + l.Item2, l.Item3, l.Item4)).ToList();
+					}
+
 					var parentMember = GetUnderlyingMemberExpression(entityExpression).Member.Name;
 					var linkEntity2 = source.Single(l => l.Item1 == parentMember).Item3;
 					linkEntity1 = linkEntity2 == null ? qe.AddLink(entityLogicalName, attributeName1, attributeName2, JoinOperator.Inner) : linkEntity2.AddLink(entityLogicalName, attributeName1, attributeName2, JoinOperator.Inner);
@@ -1012,6 +917,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 				++i;
 			}
 			while (i < methods.Count && methods[i].Method.Name == "Join");
+			
 			--i;
 			linkLookups = source.Select(l => new LinkLookup(l.Item4, l.Item2, l.Item3)).ToList();
 		}
@@ -1090,9 +996,9 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return _logicalOperatorNegationLookup[op];
 		}
 
-		private void TranslateWhere(QueryExpression qe, string parameterName, Expression exp, List<LinkLookup> linkLookups)
+		private void TranslateWhere(QueryExpression qe, string parameterName, Expression body, List<LinkLookup> linkLookups)
 		{
-			TranslateWhereBoolean(parameterName, exp, null, GetFilter(parameterName, qe, linkLookups), linkLookups, null, false);
+			TranslateWhereBoolean(parameterName, body, null, GetFilter(qe), linkLookups, null, false);
 		}
 
 		private void TranslateWhere(string parameterName, BinaryExpression be, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, List<LinkLookup> linkLookups, bool negate)
@@ -1124,7 +1030,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 		}
 
-		protected virtual Expression TranslateWhere(Expression exp, ref bool negate)
+		private Expression TranslateWhere(Expression exp, ref bool negate)
 		{
 			if (!(exp is UnaryExpression unaryExpression) || unaryExpression.NodeType != ExpressionType.Not)
 			{
@@ -1135,47 +1041,48 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return TranslateWhere(unaryExpression.Operand, ref negate);
 		}
 
-		protected virtual void TranslateWhereBoolean(string parameterName, Expression exp, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, List<LinkLookup> linkLookups, BinaryExpression parent, bool negate)
+		private void TranslateWhereBoolean(string parameterName, Expression body, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, List<LinkLookup> linkLookups, BinaryExpression parent, bool negate)
 		{
-			if (exp is BinaryExpression be)
+			switch (body)
 			{
-				if (be.Left is ConstantExpression left && (be.NodeType == ExpressionType.AndAlso && Equals(left.Value, true) || be.NodeType == ExpressionType.OrElse && Equals(left.Value, false)))
+				case BinaryExpression be:
+					if (be.Left is ConstantExpression left && (be.NodeType == ExpressionType.AndAlso && Equals(left.Value, true) || be.NodeType == ExpressionType.OrElse && Equals(left.Value, false)))
+					{
+						TranslateWhereBoolean(parameterName, be.Right, parentFilter, getFilter, linkLookups, parent, negate);
+					}
+					else
+					{
+						TranslateWhere(parameterName, be, parentFilter, getFilter, linkLookups, negate);
+					}
+					break;
+				case MethodCallExpression mce:
+					TranslateWhereMethodCall(mce, parentFilter, getFilter, GetLinkLookup(parameterName, linkLookups), parent, negate);
+					break;
+				case UnaryExpression unaryExpression:
+					if (unaryExpression.NodeType == ExpressionType.Convert)
+					{
+						TranslateWhereBoolean(parameterName, unaryExpression.Operand, parentFilter, getFilter, linkLookups, parent, negate);
+					}
+					else
+					{
+						if (unaryExpression.NodeType != ExpressionType.Not)
+						{
+							return;
+						}
+
+						TranslateWhereBoolean(parameterName, unaryExpression.Operand, parentFilter, getFilter, linkLookups, parent, !negate);
+					}
+					break;
+				default:
 				{
-					TranslateWhereBoolean(parameterName, be.Right, parentFilter, getFilter, linkLookups, parent, negate);
-				}
-				else
-				{
-					TranslateWhere(parameterName, be, parentFilter, getFilter, linkLookups, negate);
-				}
-			}
-			else if (exp is MethodCallExpression mce)
-			{
-				TranslateWhereMethodCall(mce, parentFilter, getFilter, GetLinkLookup(parameterName, linkLookups), parent, negate);
-			}
-			else if (exp is UnaryExpression unaryExpression)
-			{
-				if (unaryExpression.NodeType == ExpressionType.Convert)
-				{
-					TranslateWhereBoolean(parameterName, unaryExpression.Operand, parentFilter, getFilter, linkLookups, parent, negate);
-				}
-				else
-				{
-					if (unaryExpression.NodeType != ExpressionType.Not)
+					if (!(body.Type == typeof(bool)))
 					{
 						return;
 					}
 
-					TranslateWhereBoolean(parameterName, unaryExpression.Operand, parentFilter, getFilter, linkLookups, parent, !negate);
+					TranslateWhere(parameterName, Expression.Equal(body, Expression.Constant(true)), parentFilter, getFilter, linkLookups, negate);
+					break;
 				}
-			}
-			else
-			{
-				if (!(exp.Type == typeof(bool)))
-				{
-					return;
-				}
-
-				TranslateWhere(parameterName, Expression.Equal(exp, Expression.Constant(true)), parentFilter, getFilter, linkLookups, negate);
 			}
 		}
 
@@ -1187,37 +1094,50 @@ namespace Microsoft.Xrm.Sdk.Linq
 		private void TranslateWhereCondition(BinaryExpression be, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, Func<Expression, LinkLookup> getLinkLookup, bool negate)
 		{
 			var entityExpression = FindValidEntityExpression(be.Left, "where");
-			var attributeName = TranslateExpressionToAttributeName(entityExpression, false, out var alias);
+			var attributeName = TranslateExpressionToAttributeName(entityExpression, out var alias);
 			var conditionValue = TranslateExpressionToConditionValue(be.Right);
 			var linkEntityAlias = GetLinkEntityAlias(entityExpression, getLinkLookup);
-			ConditionExpression condition = null;
+			ConditionExpression condition;
 			if (conditionValue != null)
+			{
 				condition = new ConditionExpression(linkEntityAlias, attributeName, _conditionLookup[be.NodeType], conditionValue);
+			}
 			else if (be.NodeType == ExpressionType.Equal)
+			{
 				condition = new ConditionExpression(linkEntityAlias, attributeName, ConditionOperator.Null);
+			}
 			else if (be.NodeType == ExpressionType.NotEqual)
+			{
 				condition = new ConditionExpression(linkEntityAlias, attributeName, ConditionOperator.NotNull);
+			}
 			else
+			{
 				throw new NotSupportedException("Invalid 'where' condition.");
+			}
+
 			condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
 			AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, alias);
 		}
 
 		private void TranslateWhereMethodCall(MethodCallExpression mce, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, Func<Expression, LinkLookup> getLinkLookup, BinaryExpression parent, bool negate)
 		{
-			string alias = null;
 			if (_supportedMethods.Contains(mce.Method.Name) && mce.Arguments.Count == 1)
 			{
 				var entityExpression = FindValidEntityExpression(mce.Object, "where");
 				var linkEntityAlias = GetLinkEntityAlias(entityExpression, getLinkLookup);
-				var attributeName = TranslateExpressionToAttributeName(entityExpression, false, out alias);
+				var attributeName = TranslateExpressionToAttributeName(entityExpression, out var alias);
 				var conditionValue = TranslateExpressionToConditionValue(mce.Arguments[0]);
 				if (parent != null)
 				{
 					if (parent.NodeType == ExpressionType.NotEqual)
+					{
 						negate = !negate;
+					}
+
 					if ((parent.NodeType == ExpressionType.Equal || parent.NodeType == ExpressionType.NotEqual) && Equals(TranslateExpressionToConditionValue(parent.Right), false))
+					{
 						negate = !negate;
+					}
 				}
 				var condition = TranslateConditionMethodExpression(mce, attributeName, conditionValue);
 				condition.EntityName = linkEntityAlias;
@@ -1228,7 +1148,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			{
 				var entityExpression = FindValidEntityExpression(mce.Arguments[0], "where");
 				var linkEntityAlias = GetLinkEntityAlias(entityExpression, getLinkLookup);
-				var attributeName = TranslateExpressionToAttributeName(entityExpression, false, out alias);
+				var attributeName = TranslateExpressionToAttributeName(entityExpression, out var alias);
 				var conditionValue = TranslateExpressionToConditionValue(mce.Arguments[1]);
 				if (parent == null || !Equals(TranslateExpressionToConditionValue(parent.Right), 0) || !_conditionLookup.TryGetValue(parent.NodeType, out var conditionOperator))
 					return;
@@ -1239,7 +1159,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			else if (mce.Method.Name == "Like" && mce.Arguments.Count == 2)
 			{
 				var entityExpression = FindValidEntityExpression(mce.Arguments[0], "where");
-				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression, false, out alias), ConditionOperator.Like, TranslateExpressionToConditionValue(mce.Arguments[1]));
+				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression, out var alias), ConditionOperator.Like, TranslateExpressionToConditionValue(mce.Arguments[1]));
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
 				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, alias);
 			}
@@ -1251,7 +1171,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 				}
 
 				var entityExpression = FindValidEntityExpression(mce, "where");
-				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression, false, out alias), ConditionOperator.Equal, true);
+				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression, out var alias), ConditionOperator.Equal, true);
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
 				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, alias);
 			}
@@ -1290,15 +1210,12 @@ namespace Microsoft.Xrm.Sdk.Linq
 			filter.Filter.AddCondition(condition);
 		}
 
-		private FilterExpressionWrapper GetFilter(
-		  Expression entityExpression,
-		  FilterExpressionWrapper parentFilter,
-		  Func<Expression, FilterExpressionWrapper> getFilter)
+		private FilterExpressionWrapper GetFilter(Expression entityExpression, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter)
 		{
 			return parentFilter ?? getFilter(entityExpression);
 		}
 
-		protected virtual Func<Expression, LinkLookup> GetLinkLookup(string parameterName, List<LinkLookup> linkLookups)
+		private Func<Expression, LinkLookup> GetLinkLookup(string parameterName, List<LinkLookup> linkLookups)
 		{
 			return exp =>
 			{
@@ -1316,24 +1233,27 @@ namespace Microsoft.Xrm.Sdk.Linq
 			};
 		}
 
-		protected virtual Func<Expression, FilterExpressionWrapper> GetFilter(string parameterName, QueryExpression qe, List<LinkLookup> linkLookups)
+		private Func<Expression, FilterExpressionWrapper> GetFilter(QueryExpression qe)
 		{
 			return exp => new FilterExpressionWrapper(qe.Criteria, null);
 		}
 
-		protected virtual void TranslateOrderBy(QueryExpression qe, Expression exp, OrderType orderType, string parameterName, List<LinkLookup> linkLookups)
+		private void TranslateOrderBy(QueryExpression qe, Expression exp, string parameterName, OrderType orderType,
+			List<LinkLookup> linkLookups)
 		{
 			if (IsEntityExpression(exp))
 			{
 				ValidateRootEntity("orderBy", exp, parameterName, linkLookups);
-				var attributeName = TranslateExpressionToAttributeName(exp, false, out _);
+				var attributeName = TranslateExpressionToAttributeName(exp, out _);
 				qe.AddOrder(attributeName, orderType);
 			}
 			else
+			{
 				TranslateNonEntityExpressionOrderBy(qe, exp, orderType);
+			}
 		}
 
-		protected virtual void TranslateNonEntityExpressionOrderBy(QueryExpression qe, Expression exp, OrderType orderType)
+		private void TranslateNonEntityExpressionOrderBy(QueryExpression qe, Expression exp, OrderType orderType)
 		{
 			throw new NotSupportedException("The 'orderBy' call must specify property names.");
 		}
@@ -1341,15 +1261,23 @@ namespace Microsoft.Xrm.Sdk.Linq
 		private void ValidateRootEntity(string operationName, Expression exp, string parameterName, List<LinkLookup> linkLookups)
 		{
 			if (linkLookups == null)
+			{
 				return;
+			}
+
 			var parameterExpressionName = GetUnderlyingParameterExpressionName(exp);
 			var linkLookup = linkLookups.SingleOrDefault(l => l.Link == null);
 			if (linkLookup == null)
+			{
 				return;
+			}
+
 			if ($"{parameterName}.{linkLookup.Environment}" == parameterExpressionName)
+			{
 				return;
-			throw new NotSupportedException(
-				$"The '{operationName}' expression is limited to invoking the '{linkLookup.ParameterName}' parameter.");
+			}
+
+			throw new NotSupportedException($"The '{operationName}' expression is limited to invoking the '{linkLookup.ParameterName}' parameter.");
 		}
 
 		private Expression TranslateSelect(List<MethodCallExpression> methods, int i, QueryExpression qe, LambdaExpression exp, ref NavigationSource source)
@@ -1361,10 +1289,13 @@ namespace Microsoft.Xrm.Sdk.Linq
 		private Expression TranslateSelect(LambdaExpression exp, QueryExpression qe, ref NavigationSource source)
 		{
 			if (qe.Criteria.Conditions.Count != 1 || qe.Criteria.Conditions[0].Values.Count != 1 || !(qe.Criteria.Conditions[0].Values[0] is Guid))
+			{
 				return null;
+			}
+
 			var condition = qe.Criteria.Conditions[0];
 			var target = new EntityReference(qe.EntityName, (Guid) condition.Values[0]);
-			var relationshipQuery = GetSelectRelationshipQuery(qe, exp, true, out var relationship);
+			var relationshipQuery = GetSelectRelationshipQuery(exp, true, out var relationship);
 			if (relationshipQuery != null)
 			{
 				source = new NavigationSource(target, relationship);
@@ -1454,7 +1385,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 					return new EntityColumn();
 				}
 
-				var attributeName = TranslateExpressionToAttributeName(exp, true, out _);
+				var attributeName = TranslateExpressionToAttributeName(exp, out _);
 				if (!string.IsNullOrEmpty(attributeName))
 				{
 					return new EntityColumn(GetUnderlyingParameterExpressionName(exp), attributeName);
@@ -1475,7 +1406,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return TranslateSelectColumn(pe);
 		}
 
-		protected virtual EntityColumn TranslateSelectColumn(ParameterExpression pe)
+		private EntityColumn TranslateSelectColumn(ParameterExpression pe)
 		{
 			if (pe != null && IsEntity(pe.Type))
 			{
@@ -1515,7 +1446,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 			var condition = qe.Criteria.Conditions[0];
 			var target = new EntityReference(qe.EntityName, (Guid) condition.Values[0]);
-			var relationshipQuery = GetSelectRelationshipQuery(qe, exp, false, out var relationship);
+			var relationshipQuery = GetSelectRelationshipQuery(exp, false, out var relationship);
 			if (relationshipQuery != null)
 			{
 				source = new NavigationSource(target, relationship);
@@ -1525,7 +1456,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return null;
 		}
 
-		protected virtual IQueryable GetSelectRelationshipQuery(QueryExpression qe, LambdaExpression exp, bool isSelect, out Relationship relationship)
+		private IQueryable GetSelectRelationshipQuery(LambdaExpression exp, bool isSelect, out Relationship relationship)
 		{
 			if (!(FindEntityExpression(exp.Body) is MemberExpression entityExpression))
 			{
@@ -1546,19 +1477,19 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return CreateQuery(isSelect ? entityExpression.Type : entityExpression.Type.GetGenericArguments()[0]);
 		}
 
-		private Expression GetMethodCallBody(MethodCallExpression mce, out string parameterName)
+		private (string parameterName, Expression Body) GetMethodCallBody(MethodCallExpression mce)
 		{
 			if (mce.Arguments.Count <= 1)
 			{
-				parameterName = null;
-				return null;
+				return (null, null);
 			}
-			var operand = (mce.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
-			parameterName = operand.Parameters[0].Name;
-			return operand.Body;
+
+			var firstArgument = (UnaryExpression)mce.Arguments[1];
+			var operand = (LambdaExpression)firstArgument.Operand;
+			return (operand.Parameters[0].Name, operand.Body);
 		}
 
-		protected virtual string TranslateExpressionToAttributeName(Expression exp, bool isSelectExpression, out string alias)
+		private string TranslateExpressionToAttributeName(Expression exp, out string alias)
 		{
 			alias = null;
 			switch (exp)
@@ -1587,7 +1518,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			throw new InvalidOperationException("Cannot determine the attribute name.");
 		}
 
-		protected virtual bool IsEnumerableEntity(Type type)
+		private bool IsEnumerableEntity(Type type)
 		{
 			if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(IEnumerable<>))
 			{
@@ -1600,17 +1531,17 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 		private static bool IsAnonymousType(Type type)
 		{
-			var flag1 = type.GetCustomAttributes(typeof (CompilerGeneratedAttribute), false).Any();
-			var flag2 = type.Name.Contains("AnonymousType");
-			return flag1 && flag2;
+			return 
+				type.GetCustomAttributes(typeof (CompilerGeneratedAttribute), false).Any() && 
+				type.Name.Contains("AnonymousType");
 		}
 
-		protected virtual bool IsEntity(Type type)
+		private bool IsEntity(Type type)
 		{
 			return IsDynamicEntity(type) || IsStaticEntity(type);
 		}
 
-		protected virtual bool IsDynamicEntity(Type type)
+		private bool IsDynamicEntity(Type type)
 		{
 			return type.IsA<Entity>();
 		}
@@ -1620,7 +1551,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return type.GetLogicalName() != null;
 		}
 
-		protected virtual Expression FindValidEntityExpression(Expression exp, string operation = "where")
+		private Expression FindValidEntityExpression(Expression exp, string operation)
 		{
 			if (exp is UnaryExpression unaryExpression && (unaryExpression.NodeType == ExpressionType.Convert || unaryExpression.NodeType == ExpressionType.TypeAs))
 			{
@@ -1644,17 +1575,16 @@ namespace Microsoft.Xrm.Sdk.Linq
 				case MethodCallExpression methodCallExpression when _validMethods.Contains(methodCallExpression.Method.Name):
 					return FindValidEntityExpression(methodCallExpression.Object, operation);
 				default:
-					throw new NotSupportedException(
-						$"Invalid '{operation}' condition. An entity member is invoking an invalid property or method.");
+					throw new NotSupportedException($"Invalid '{operation}' condition. An entity member is invoking an invalid property or method.");
 			}
 		}
 
-		protected Expression FindEntityExpression(Expression exp)
+		private Expression FindEntityExpression(Expression exp)
 		{
 			return exp.FindPreorder(IsEntityExpression);
 		}
 
-		protected virtual bool IsEntityExpression(Expression e)
+		private bool IsEntityExpression(Expression e)
 		{
 			if (e is MethodCallExpression methodCallExpression)
 			{
@@ -1676,9 +1606,9 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return false;
 		}
 
-		protected virtual bool IsEntityMemberExpression(MemberExpression me)
+		private bool IsEntityMemberExpression(MemberExpression me)
 		{
-			return me.Member != null && IsEntity(me.Member.DeclaringType);
+			return IsEntity(me.Member.DeclaringType);
 		}
 
 		private MemberExpression GetUnderlyingMemberExpression(Expression exp)
@@ -1716,17 +1646,12 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 			if (exp is MemberExpression memberExpression && memberExpression.Expression is ConstantExpression expression)
 			{
-				var target = expression.Value;
-				var member1 = memberExpression.Member as FieldInfo;
-				if (member1 != null)
+				switch (memberExpression.Member)
 				{
-					return GetFieldValue(member1, target);
-				}
-
-				var member2 = memberExpression.Member as PropertyInfo;
-				if (member2 != null)
-				{
-					return GetPropertyValue(member2, target);
+					case FieldInfo filedMember:
+						return GetFieldValue(filedMember, expression.Value);
+					case PropertyInfo propertyMember:
+						return GetPropertyValue(propertyMember, expression.Value);
 				}
 			}
 			return exp is UnaryExpression unaryExpression && unaryExpression.NodeType == ExpressionType.Convert ? TranslateExpressionToValue(unaryExpression.Operand) : DynamicInvoke(CompileExpression(Expression.Lambda(exp, parameters)));
@@ -1764,19 +1689,30 @@ namespace Microsoft.Xrm.Sdk.Linq
 		{
 			var obj = TranslateExpressionToValue(exp, parameters);
 			if (obj is DateTime dateTime)
+			{
 				obj = dateTime.ToString("u", CultureInfo.InvariantCulture);
+			}
 			else if (obj is EntityReference entityReference)
+			{
 				obj = entityReference.Id;
+			}
 			else if (obj is Money money)
+			{
 				obj = money.Value;
+			}
 			else if (obj is OptionSetValue optionSetValue)
+			{
 				obj = optionSetValue.Value;
+			}
 			else if (obj != null && obj.GetType().IsEnum)
+			{
 				obj = (int)obj;
+			}
+
 			return obj;
 		}
 
-		protected virtual void TranslateEntityName(QueryExpression qe, Expression expression, MethodCallExpression mce)
+		private void TranslateEntityName(QueryExpression qe, Expression expression)
 		{
 			if (qe.EntityName != null)
 			{
@@ -1790,7 +1726,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 		}
 
-		protected sealed class NavigationSource
+		private sealed class NavigationSource
 		{
 			public EntityReference Target { get; }
 
@@ -1803,7 +1739,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 		}
 
-		protected sealed class FilterExpressionWrapper
+		private sealed class FilterExpressionWrapper
 		{
 			public FilterExpression Filter { get; }
 
@@ -1816,7 +1752,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 		}
 
-		protected sealed class LinkLookup
+		private sealed class LinkLookup
 		{
 			public string ParameterName { get; }
 
@@ -1826,12 +1762,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 			public string SelectManyEnvironment { get; }
 
-			public LinkLookup(string parameterName, string environment, LinkEntity link)
-			  : this(parameterName, environment, link, null)
-			{
-			}
-
-			public LinkLookup(string parameterName, string environment, LinkEntity link, string selectManyEnvironment)
+			public LinkLookup(string parameterName, string environment, LinkEntity link, string selectManyEnvironment = null)
 			{
 				ParameterName = parameterName;
 				Environment = environment;
@@ -1840,7 +1771,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 		}
 
-		protected sealed class Projection
+		private sealed class Projection
 		{
 			public string MethodName { get; }
 
@@ -1853,7 +1784,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 		}
 
-		protected sealed class EntityColumn
+		private sealed class EntityColumn
 		{
 			public string ParameterName { get; }
 
@@ -1861,9 +1792,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 			public bool AllColumns { get; }
 
-			public EntityColumn()
-			{
-			}
+			public EntityColumn() { }
 
 			public EntityColumn(string parameterName, string column)
 			{
