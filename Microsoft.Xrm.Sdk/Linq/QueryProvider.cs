@@ -253,11 +253,17 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 			var a = AdjustPagingInfo(request, qe, source);
 
-			var entityCollection1 = !a.Adjust 
-				? AdjustEntityCollection(request, qe, source) 
-				: a.MoreRecordAfterAdjust 
-					? RetrieveEntityCollection(request, source) 
+			EntityCollection entityCollection1;
+			if (!a.Adjust)
+			{
+				entityCollection1 = AdjustEntityCollection(request, qe, source);
+			}
+			else
+			{
+				entityCollection1 = a.MoreRecordAfterAdjust
+					? RetrieveEntityCollection(request, source)
 					: new EntityCollection();
+			}
 
 			if (throwIfSequenceIsEmpty && (entityCollection1 == null || entityCollection1.Entities.Count == 0))
 			{
@@ -335,7 +341,9 @@ namespace Microsoft.Xrm.Sdk.Linq
 				return retrieveResponse.Entity.RelatedEntities.Contains(source.Relationship) ? retrieveResponse.Entity.RelatedEntities[source.Relationship] : null;
 			}
 
-			return ((RetrieveMultipleResponse) OrganizationServiceContext.Execute(request)).EntityCollection;
+			var responce = OrganizationServiceContext.Execute(request);
+
+			return ((RetrieveMultipleResponse) responce).EntityCollection;
 		}
 
 		private static string ResetPagingNumber(string pagingCookie, int newPage)
@@ -691,10 +699,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 				switch (methodName)
 				{
 					case nameof(Queryable.Join):
-						var temp = TranslateJoin(qe, list, ref i);
+						TranslateJoin(qe, list, ref i);
 						break;
 					case nameof(Queryable.GroupJoin):
-						TranslateGroupJoin(qe, list, ref i, out projection, out linkLookups);
+						TranslateGroupJoin(qe, list, ref i);
 						break;
 					case nameof(Queryable.FirstOrDefault):
 					{
@@ -903,8 +911,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 		private (Projection projection, List<LinkLookup> linkLookups) TranslateJoin(QueryExpression qe, List<MethodCallExpression> methods, ref int i)
 		{
 			var num = 0;
-			List<LinkData> source = null;
-			source = new List<LinkData>();
+			var source = new List<LinkData>();
 			Projection projection;
 			do
 			{
@@ -924,12 +931,12 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 				var operand1 = method.OuterKeySelector.Operand as LambdaExpression;
 				var name1 = operand1.Parameters[0].Name;
-				var entityExpression = FindValidEntityExpression(operand1.Body, "join");
+				var entityExpression = FindValidEntityExpression(operand1.Body, nameof(Queryable.Join));
 				var attributeName1 = TranslateExpressionToAttributeName(entityExpression);
 				
 				var operand2 = method.InnerKeySelector.Operand as LambdaExpression;
 				var name2 = operand2.Parameters[0].Name;
-				var entityExpression2 = FindValidEntityExpression(operand2.Body, "join");
+				var entityExpression2 = FindValidEntityExpression(operand2.Body, nameof(Queryable.Join));
 				var attributeName2 = TranslateExpressionToAttributeName(entityExpression2);
 				
 				var entityLogicalName = (method.Inner.Value as IEntityQuery).EntityLogicalName;
@@ -969,7 +976,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return (projection, linkLookups);
 		}
 
-		private void TranslateGroupJoin(QueryExpression qe, List<MethodCallExpression> methods, ref int i, out Projection projection, out List<LinkLookup> linkLookups)
+		private (Projection projection, List<LinkLookup> linkLookups) TranslateGroupJoin(QueryExpression qe, List<MethodCallExpression> methods, ref int i)
 		{
 			var method1 = methods[i];
 			var linkLookups1 = TranslateJoin(qe, methods, ref i).linkLookups;
@@ -991,48 +998,61 @@ namespace Microsoft.Xrm.Sdk.Linq
 				var parameter2 = ((method1.Arguments[3] as UnaryExpression).Operand as LambdaExpression).Parameters[0];
 				expression = Expression.Lambda(parameter2, parameter1, parameter2);
 			}
-			projection = new Projection(method2.Method.Name, expression);
+			var projection = new Projection(method2.Method.Name, expression);
 			var environmentForParameter1 = GetEnvironmentForParameter(projection.Expression, 0);
 			var environmentForParameter2 = GetEnvironmentForParameter(projection.Expression, 1);
 			
-			var linkLookupList1 = new List<LinkLookup>();
+			var firstJoinLink = linkLookups1[0];
 			
-			var parameterName = linkLookups1[0].ParameterName;
-			var environment1 = environmentForParameter1 == null ? linkLookups1[0].Environment : $"{environmentForParameter1}.{linkLookups1[0].Environment}";
-			var link = linkLookups1[0].Link;
-			var environment2 = linkLookups1[0].Environment;
-			var linkLookup = new LinkLookup(parameterName, environment1, link, environment2);
+			var environment1 = environmentForParameter1 == null ? firstJoinLink.Environment : $"{environmentForParameter1}.{firstJoinLink.Environment}";
+			var linkLookup = new LinkLookup(firstJoinLink.ParameterName, environment1, firstJoinLink.Link, firstJoinLink.Environment);
+			
+			var linkLookupList1 = new List<LinkLookup>();
 			
 			linkLookupList1.Add(linkLookup);
 			linkLookupList1.Add(new LinkLookup(linkLookups1[1].ParameterName, environmentForParameter2, linkLookups1[1].Link));
 
-			linkLookups = linkLookupList1;
-			
 			linkLookups1[1].Link.JoinOperator = JoinOperator.LeftOuter;
+
+			return (projection, linkLookupList1);
 		}
 
 		private bool IsValidLeftOuterSelectManyExpression(MethodCallExpression mce)
 		{
-			return mce.Method.Name == "SelectMany" && mce.Arguments[1] is UnaryExpression unaryExpression1 && unaryExpression1.Operand is LambdaExpression operand1 && operand1.Body is MethodCallExpression body && body.Method.Name == "DefaultIfEmpty" && body.Arguments.Count == 1 && (mce.Arguments.Count == 2 || mce.Arguments.Count == 3 && mce.Arguments[2] is UnaryExpression unaryExpression2 && unaryExpression2.Operand is LambdaExpression operand2 && operand2.Parameters.Count == 2);
+			return 
+				mce.Method.Name == nameof(Queryable.SelectMany) && 
+				mce.Arguments[1] is UnaryExpression unaryExpression1 && 
+				unaryExpression1.Operand is LambdaExpression operand1 && 
+				operand1.Body is MethodCallExpression body && 
+				body.Method.Name == nameof(Queryable.DefaultIfEmpty) && 
+				body.Arguments.Count == 1 && 
+				(
+					mce.Arguments.Count == 2 || 
+					mce.Arguments.Count == 3 && 
+					mce.Arguments[2] is UnaryExpression unaryExpression2 && 
+					unaryExpression2.Operand is LambdaExpression operand2 && 
+					operand2.Parameters.Count == 2
+				);
 		}
 
 		private string GetEnvironmentForParameter(LambdaExpression projection, int index)
 		{
-			if (!(projection.Body is NewExpression body))
+			if (projection.Body is NewExpression body)
 			{
-				return null;
+				var parameter = projection.Parameters[index];
+				var arguments = body.Arguments;
+
+				for (int i = 0; i < arguments.Count; i++)
+				{
+					var argument = arguments[i];
+					if (argument == parameter)
+					{
+						return body.Members[i].Name;
+					}
+				}
 			}
 
-			var parameter = projection.Parameters[index];
-			var arguments = body.Arguments;
-			var expression = arguments.FirstOrDefault(arg => arg == parameter);
-			if (expression == null)
-			{
-				return null;
-			}
-
-			var index1 = arguments.IndexOf(expression);
-			return body.Members[index1].Name;
+			return null;
 		}
 
 		private ConditionOperator NegateOperator(ConditionOperator op)
@@ -1142,7 +1162,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 		private void TranslateWhereCondition(BinaryExpression be, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, Func<Expression, LinkLookup> getLinkLookup, bool negate)
 		{
-			var entityExpression = FindValidEntityExpression(be.Left, "where");
+			var entityExpression = FindValidEntityExpression(be.Left, nameof(Queryable.Where));
 			var attributeName = TranslateExpressionToAttributeName(entityExpression);
 			var conditionValue = TranslateExpressionToConditionValue(be.Right);
 			var linkEntityAlias = GetLinkEntityAlias(entityExpression, getLinkLookup);
@@ -1172,7 +1192,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 		{
 			if (_supportedMethods.Contains(mce.Method.Name) && mce.Arguments.Count == 1)
 			{
-				var entityExpression = FindValidEntityExpression(mce.Object, "where");
+				var entityExpression = FindValidEntityExpression(mce.Object, nameof(Queryable.Where));
 				var linkEntityAlias = GetLinkEntityAlias(entityExpression, getLinkLookup);
 				var attributeName = TranslateExpressionToAttributeName(entityExpression);
 				var conditionValue = TranslateExpressionToConditionValue(mce.Arguments[0]);
@@ -1195,7 +1215,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 			else if (mce.Method.Name == "Compare" && mce.Arguments.Count == 2)
 			{
-				var entityExpression = FindValidEntityExpression(mce.Arguments[0], "where");
+				var entityExpression = FindValidEntityExpression(mce.Arguments[0], nameof(Queryable.Where));
 				var linkEntityAlias = GetLinkEntityAlias(entityExpression, getLinkLookup);
 				var attributeName = TranslateExpressionToAttributeName(entityExpression);
 				var conditionValue = TranslateExpressionToConditionValue(mce.Arguments[1]);
@@ -1210,7 +1230,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 			else if (mce.Method.Name == "Like" && mce.Arguments.Count == 2)
 			{
-				var entityExpression = FindValidEntityExpression(mce.Arguments[0], "where");
+				var entityExpression = FindValidEntityExpression(mce.Arguments[0], nameof(Queryable.Where));
 				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression), ConditionOperator.Like, TranslateExpressionToConditionValue(mce.Arguments[1]));
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
 				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, null);
@@ -1222,7 +1242,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 					return;
 				}
 
-				var entityExpression = FindValidEntityExpression(mce, "where");
+				var entityExpression = FindValidEntityExpression(mce, nameof(Queryable.Where));
 				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression), ConditionOperator.Equal, true);
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
 				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, null);

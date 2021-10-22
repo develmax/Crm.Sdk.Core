@@ -8,54 +8,48 @@ using System.Linq.Expressions;
 
 namespace Microsoft.Xrm.Sdk.Linq
 {
-  internal sealed class Query<T> : IOrderedQueryable<T>, IQueryable<T>, IEnumerable<T>, IOrderedQueryable, IQueryable, IEnumerable, IEntityQuery
-  {
-    public string EntityLogicalName { get; private set; }
+	internal sealed class Query<T> : IOrderedQueryable<T>, IEntityQuery
+	{
+		public string EntityLogicalName { get; }
 
-    public Query(IQueryProvider provider, string entityLogicalName)
-    {
-      if (provider == null)
-        throw new ArgumentNullException(nameof (provider));
-      if (string.IsNullOrWhiteSpace(entityLogicalName))
-        throw new ArgumentNullException(nameof (entityLogicalName));
-      this.Provider = provider;
-      this.EntityLogicalName = entityLogicalName;
-      this.Expression = (Expression) Expression.Constant((object) this);
-    }
+		public Query(IQueryProvider provider, string entityLogicalName)
+		{
+			if (string.IsNullOrWhiteSpace(entityLogicalName))
+			{
+				throw new ArgumentNullException(nameof(entityLogicalName));
+			}
 
-    public Query(IQueryProvider provider, Expression expression)
-    {
-      if (provider == null)
-        throw new ArgumentNullException(nameof (provider));
-      if (expression == null)
-        throw new ArgumentNullException(nameof (expression));
-      this.Provider = provider;
-      this.Expression = expression;
-    }
+			Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+			EntityLogicalName = entityLogicalName;
+			Expression = Expression.Constant(this);
+		}
 
-    public IEnumerator<T> GetEnumerator()
-    {
-      if (this.Provider is QueryProvider provider)
-        return provider.GetEnumerator<T>(this.Expression);
-      throw new InvalidOperationException(string.Format((IFormatProvider) CultureInfo.InvariantCulture, "The provider '{0}' is not of the expected type '{1}'.", (object) this.Provider, (object) typeof (QueryProvider)));
-    }
+		public Query(IQueryProvider provider, Expression expression)
+		{
+			Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+			Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+		}
 
-    [SuppressMessage("Microsoft.Usage", "CA9888:DisposeObjectsCorrectly", Justification = "Value is returned from method and cannot be disposed.", Target = "CS$1$0000")]
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-      return (IEnumerator) this.GetEnumerator();
-    }
+		public IEnumerator<T> GetEnumerator()
+		{
+			if (Provider is QueryProvider provider)
+			{
+				return provider.GetEnumerator<T>(Expression);
+			}
 
-    public Type ElementType
-    {
-      get
-      {
-        return typeof (T);
-      }
-    }
+			throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "The provider '{0}' is not of the expected type '{1}'.", Provider, typeof(QueryProvider)));
+		}
 
-    public IQueryProvider Provider { get; private set; }
+		[SuppressMessage("Microsoft.Usage", "CA9888:DisposeObjectsCorrectly", Justification = "Value is returned from method and cannot be disposed.", Target = "CS$1$0000")]
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 
-    public Expression Expression { get; private set; }
-  }
+		public Type ElementType => typeof(T);
+
+		public IQueryProvider Provider { get; }
+
+		public Expression Expression { get; }
+	}
 }

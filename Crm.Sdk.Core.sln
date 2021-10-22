@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1209
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Xrm.Sdk", "Microsoft.Xrm.Sdk\Microsoft.Xrm.Sdk.csproj", "{91C47A41-7295-4D09-BB11-770CF0050094}"
 EndProject
@@ -13,7 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crm.Sdk.Core.Test", "Crm.Sd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crm.Sdk.Core.Package", "Crm.Sdk.Core.Package\Crm.Sdk.Core.Package.csproj", "{428E9C5B-8552-442F-9A07-FB9390A649D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Crm.Sdk.Proxy", "Microsoft.Crm.Sdk.Proxy\Microsoft.Crm.Sdk.Proxy.csproj", "{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Crm.Sdk.Proxy", "Microsoft.Crm.Sdk.Proxy\Microsoft.Crm.Sdk.Proxy.csproj", "{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crm.Sdk.Core.Linq.Tests", "Crm.Sdk.Core.Linq.Tests\Crm.Sdk.Core.Linq.Tests.csproj", "{0BFE3EA2-5B39-4852-A075-A6CA2B7F6BE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model.For.Test", "Model.For.Test\Model.For.Test.csproj", "{DBA8624A-0713-4928-942B-3E0D8A83BB92}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +49,14 @@ Global
 		{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB6FBE18-7BCC-4F71-A454-D635BAE47C26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BFE3EA2-5B39-4852-A075-A6CA2B7F6BE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BFE3EA2-5B39-4852-A075-A6CA2B7F6BE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BFE3EA2-5B39-4852-A075-A6CA2B7F6BE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BFE3EA2-5B39-4852-A075-A6CA2B7F6BE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBA8624A-0713-4928-942B-3E0D8A83BB92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBA8624A-0713-4928-942B-3E0D8A83BB92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBA8624A-0713-4928-942B-3E0D8A83BB92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBA8624A-0713-4928-942B-3E0D8A83BB92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

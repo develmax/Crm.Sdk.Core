@@ -8,21 +8,18 @@ namespace Microsoft.Xrm.Sdk.Linq
 {
   internal static class ExpressionExtensions
   {
-    public static void ForSubtreePreorder(
-      this Expression exp,
-      ExpressionExtensions.ExpressionAction action)
+    public static void ForSubtreePreorder(this Expression exp, ExpressionAction action)
     {
-      exp.ForSubtreePreorder((Expression) null, action);
+      exp.ForSubtreePreorder(null, action);
     }
 
-    public static void ForSubtreePreorder(
-      this Expression exp,
-      Expression parent,
-      ExpressionExtensions.ExpressionAction action)
+    public static void ForSubtreePreorder(this Expression exp, Expression parent, ExpressionAction action)
     {
       action(exp, parent);
       foreach (Expression child in exp.GetChildren())
-        child.ForSubtreePreorder(exp, action);
+      {
+	      child.ForSubtreePreorder(exp, action);
+      }
     }
 
     [SuppressMessage("Microsoft.Usage", "CA9888:DisposeObjectsCorrectly", Justification = "Value is returned from method and cannot be disposed.", Target = "local$0")]
@@ -30,65 +27,64 @@ namespace Microsoft.Xrm.Sdk.Linq
     {
       switch (exp)
       {
-        case UnaryExpression _:
-          yield return ((UnaryExpression) exp).Operand;
+        case UnaryExpression expression:
+          yield return expression.Operand;
           break;
-        case BinaryExpression _:
-          yield return ((BinaryExpression) exp).Left;
-          yield return ((BinaryExpression) exp).Right;
-          yield return (Expression) ((BinaryExpression) exp).Conversion;
+        case BinaryExpression expression:
+          yield return expression.Left;
+          yield return expression.Right;
+          yield return expression.Conversion;
           break;
-        case TypeBinaryExpression _:
-          yield return ((TypeBinaryExpression) exp).Expression;
+        case TypeBinaryExpression expression:
+          yield return expression.Expression;
           break;
-        case ConditionalExpression _:
-          yield return ((ConditionalExpression) exp).Test;
-          yield return ((ConditionalExpression) exp).IfTrue;
-          yield return ((ConditionalExpression) exp).IfFalse;
+        case ConditionalExpression expression:
+          yield return expression.Test;
+          yield return expression.IfTrue;
+          yield return expression.IfFalse;
           break;
-        case MemberExpression _:
-          yield return ((MemberExpression) exp).Expression;
+        case MemberExpression expression:
+          yield return expression.Expression;
           break;
-        case MethodCallExpression _:
-          yield return ((MethodCallExpression) exp).Object;
-          foreach (Expression expression in ((MethodCallExpression) exp).Arguments)
+        case MethodCallExpression callExpression:
+          yield return callExpression.Object;
+          foreach (Expression expression in callExpression.Arguments)
             yield return expression;
           break;
-        case LambdaExpression _:
-          yield return ((LambdaExpression) exp).Body;
-          foreach (ParameterExpression parameter in ((LambdaExpression) exp).Parameters)
-            yield return (Expression) parameter;
+        case LambdaExpression expression:
+          yield return expression.Body;
+          foreach (ParameterExpression parameter in expression.Parameters)
+            yield return parameter;
           break;
-        case NewExpression _:
-          foreach (Expression expression in ((NewExpression) exp).Arguments)
+        case NewExpression newExpression:
+          foreach (Expression expression in newExpression.Arguments)
             yield return expression;
           break;
-        case NewArrayExpression _:
-          foreach (Expression expression in ((NewArrayExpression) exp).Expressions)
+        case NewArrayExpression arrayExpression:
+          foreach (Expression expression in arrayExpression.Expressions)
             yield return expression;
           break;
-        case InvocationExpression _:
-          yield return ((InvocationExpression) exp).Expression;
-          foreach (Expression expression in ((InvocationExpression) exp).Arguments)
+        case InvocationExpression invocationExpression:
+          yield return invocationExpression.Expression;
+          foreach (Expression expression in invocationExpression.Arguments)
             yield return expression;
           break;
-        case MemberInitExpression _:
-          yield return (Expression) ((MemberInitExpression) exp).NewExpression;
-          foreach (Expression child in ExpressionExtensions.GetChildren((IEnumerable<MemberBinding>) ((MemberInitExpression) exp).Bindings))
+        case MemberInitExpression expression:
+          yield return expression.NewExpression;
+          foreach (Expression child in GetChildren(expression.Bindings))
             yield return child;
           break;
-        case ListInitExpression _:
-          yield return (Expression) ((ListInitExpression) exp).NewExpression;
-          foreach (Expression child in ExpressionExtensions.GetChildren((IEnumerable<ElementInit>) ((ListInitExpression) exp).Initializers))
+        case ListInitExpression expression:
+          yield return expression.NewExpression;
+          foreach (Expression child in GetChildren(expression.Initializers))
             yield return child;
           break;
       }
     }
 
-    private static IEnumerable<Expression> GetChildren(
-      IEnumerable<MemberBinding> bindings)
+    private static IEnumerable<Expression> GetChildren(IEnumerable<MemberBinding> bindings)
     {
-      return bindings.SelectMany<MemberBinding, Expression>(new Func<MemberBinding, IEnumerable<Expression>>(ExpressionExtensions.GetChildren));
+      return bindings.SelectMany(GetChildren);
     }
 
     [SuppressMessage("Microsoft.Usage", "CA9888:DisposeObjectsCorrectly", Justification = "Value is returned from method and cannot be disposed.", Target = "local$0")]
@@ -100,11 +96,13 @@ namespace Microsoft.Xrm.Sdk.Linq
           yield return ((MemberAssignment) binding).Expression;
           break;
         case MemberBindingType.MemberBinding:
-          foreach (Expression child in ExpressionExtensions.GetChildren((IEnumerable<MemberBinding>) ((MemberMemberBinding) binding).Bindings))
-            yield return child;
+          foreach (Expression child in GetChildren(((MemberMemberBinding) binding).Bindings))
+          {
+	          yield return child;
+          }
           break;
         case MemberBindingType.ListBinding:
-          using (IEnumerator<Expression> enumerator = ExpressionExtensions.GetChildren((IEnumerable<ElementInit>) ((MemberListBinding) binding).Initializers).GetEnumerator())
+          using (IEnumerator<Expression> enumerator = GetChildren(((MemberListBinding) binding).Initializers).GetEnumerator())
           {
             while (enumerator.MoveNext())
             {
@@ -116,48 +114,48 @@ namespace Microsoft.Xrm.Sdk.Linq
       }
     }
 
-    private static IEnumerable<Expression> GetChildren(
-      IEnumerable<ElementInit> initializers)
+    private static IEnumerable<Expression> GetChildren(IEnumerable<ElementInit> initializers)
     {
-      return initializers.SelectMany<ElementInit, Expression>((Func<ElementInit, IEnumerable<Expression>>) (initializer => (IEnumerable<Expression>) initializer.Arguments));
+      return initializers.SelectMany(initializer => initializer.Arguments);
     }
 
     [SuppressMessage("Microsoft.Usage", "CA9888:DisposeObjectsCorrectly", Justification = "Value is returned from method and cannot be disposed.", Target = "local$0")]
-    public static IEnumerable<Expression> GetSubtreePreorder(
-      this Expression exp)
+    public static IEnumerable<Expression> GetSubtreePreorder(this Expression exp)
     {
       yield return exp;
-      foreach (Expression expression in exp.GetChildren().SelectMany<Expression, Expression>((Func<Expression, IEnumerable<Expression>>) (child => child.GetSubtreePreorder())))
-        yield return expression;
+      foreach (Expression expression in exp.GetChildren().SelectMany(child => child.GetSubtreePreorder()))
+      {
+	      yield return expression;
+      }
     }
 
-    public static Expression FindPreorder(
-      this Expression exp,
-      Predicate<Expression> match)
+    public static Expression FindPreorder(this Expression exp, Predicate<Expression> match)
     {
-      return exp.GetSubtreePreorder().FirstOrDefault<Expression>((Func<Expression, bool>) (child => match(child)));
+      return exp.GetSubtreePreorder().FirstOrDefault<Expression>(child => match(child));
     }
 
     [SuppressMessage("Microsoft.Usage", "CA9888:DisposeObjectsCorrectly", Justification = "Value is returned from method and cannot be disposed.", Target = "local$0")]
-    public static IEnumerable<MethodCallExpression> GetMethodsPreorder(
-      this Expression exp)
+    public static IEnumerable<MethodCallExpression> GetMethodsPreorder(this Expression exp)
     {
       if (exp is MethodCallExpression mce)
       {
         yield return mce;
         foreach (MethodCallExpression methodCallExpression in mce.Arguments[0].GetMethodsPreorder())
-          yield return methodCallExpression;
+        {
+	        yield return methodCallExpression;
+        }
       }
     }
 
     [SuppressMessage("Microsoft.Usage", "CA9888:DisposeObjectsCorrectly", Justification = "Value is returned from method and cannot be disposed.", Target = "local$0")]
-    public static IEnumerable<MethodCallExpression> GetMethodsPostorder(
-      this Expression exp)
+    public static IEnumerable<MethodCallExpression> GetMethodsPostorder(this Expression exp)
     {
       if (exp is MethodCallExpression mce)
       {
         foreach (MethodCallExpression methodCallExpression in mce.Arguments[0].GetMethodsPostorder())
-          yield return methodCallExpression;
+        {
+	        yield return methodCallExpression;
+        }
         yield return mce;
       }
     }
