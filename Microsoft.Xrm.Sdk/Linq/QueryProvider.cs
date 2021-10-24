@@ -714,6 +714,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 					}
 					case nameof(Queryable.FirstOrDefault):
 					{
+						take = 1;
 						var methodData = GetMethodCallBody(mce);
 						if (methodData.Body == null)
 						{
@@ -737,6 +738,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 					}
 					case nameof(Queryable.First):
 					{
+						take = 1;
 						throwIfSequenceIsEmpty = true;
 						var methodData = GetMethodCallBody(mce);
 						if (methodData.Body == null)
@@ -761,7 +763,6 @@ namespace Microsoft.Xrm.Sdk.Linq
 					}
 					case nameof(Queryable.Where):
 					{
-						take = 1;
 						var methodData = GetMethodCallBody(mce);
 						TranslateWhere(qe, methodData.parameterName, methodData.Body, linkLookups);
 						break;
@@ -822,6 +823,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 						qe.Distinct = true;
 						break;
 					case nameof(Queryable.SelectMany):
+					{
 						if (linkLookups != null && !isFirstJoin)
 						{
 							linkLookups.Clear();
@@ -830,6 +832,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 						TranslateEntityName(qe, expression);
 						var operand2 = (mce.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
 						return GetQueryExpression(TranslateSelectMany(list, i, qe, operand2, ref source), out throwIfSequenceIsEmpty, out throwIfSequenceNotSingle, out projection, ref source, ref linkLookups);
+					}
 				}
 			}
 

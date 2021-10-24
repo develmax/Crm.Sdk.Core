@@ -13,10 +13,13 @@ namespace Crm.Sdk.Core.Linq.Tests
 			Assert.AreEqual(item0.NoLock, item1.NoLock);
 			Assert.AreEqual(item0.TopCount, item1.TopCount);
 			Assert.AreEqual(item0.LinkEntities.Count, item1.LinkEntities.Count);
+			Assert.AreEqual(item0.Orders.Count, item1.Orders.Count);
 
 			AreEqual(item0.ColumnSet, item1.ColumnSet);
 
 			AreEqual(item0.Criteria, item1.Criteria);
+
+			AreEqual(item0.PageInfo, item1.PageInfo);
 			
 			foreach (var a in item0.LinkEntities)
 			{
@@ -27,6 +30,17 @@ namespace Crm.Sdk.Core.Linq.Tests
 					Assert.Fail($"LinkEntity не совпадают. {a} не найдена");
 				}
 			}
+
+			foreach (var a in item0.Orders)
+			{
+				bool flag = item1.Orders.Any(b => Equal(a, b));
+
+				if (flag == false)
+				{
+					Assert.Fail($"OrderExpression не совпадают. {a} не найдена");
+				}
+			}
+
 		}
 
 		public static void AreEqual(ColumnSet item0, ColumnSet item1)
@@ -44,9 +58,38 @@ namespace Crm.Sdk.Core.Linq.Tests
 			}
 		}
 
+		public static bool Equal(OrderExpression item0, OrderExpression item1)
+		{
+			if (item0.AttributeName != item1.AttributeName)
+			{
+				return false;
+			}
+
+			if (item0.OrderType != item1.OrderType)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		public static void AreEqual(PagingInfo item0, PagingInfo item1)
+		{
+			Assert.AreEqual(item0.Count, item1.Count);
+
+			Assert.AreEqual(item0.PageNumber, item1.PageNumber);
+
+			Assert.AreEqual(item0.ReturnTotalRecordCount, item1.ReturnTotalRecordCount);
+		}
+
 		public static bool Equal(ColumnSet item0, ColumnSet item1)
 		{
 			if (item0.AllColumns != item1.AllColumns)
+			{
+				return false;
+			}
+
+			if (item0.Columns.Count != item1.Columns.Count)
 			{
 				return false;
 			}

@@ -28,7 +28,7 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Create_ToList()
+		public void ToList()
 		{
 			var crm = CreateOrganizationService(request => { });
 
@@ -37,6 +37,236 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var query = context.CreateQuery<Contact>();
 
 			var a = query.ToList();
+		}
+
+		[TestMethod()]
+		public void Count()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = false},
+				PageInfo = {Count = 0, ReturnTotalRecordCount = true}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Count();
+		}
+
+		[TestMethod()]
+		public void FirstOrDefault()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {Count = 1, PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.FirstOrDefault();
+		}
+
+		[TestMethod()]
+		public void OrderBy_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				Orders = { new OrderExpression(nameof(Contact.FirstName).ToLower(), OrderType.Ascending) },
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.OrderBy(x => x.FirstName).ToList();
+		}
+
+		[TestMethod()]
+		public void OrderBy_ThenBy_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				Orders =
+				{
+					new OrderExpression(nameof(Contact.FirstName).ToLower(), OrderType.Ascending),
+					new OrderExpression(nameof(Contact.LastName).ToLower(), OrderType.Ascending),
+				},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.OrderBy(x => x.FirstName).ThenBy(x => x.LastName).ToList();
+		}
+
+		[TestMethod()]
+		public void OrderByDescending_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				Orders = { new OrderExpression(nameof(Contact.FirstName).ToLower(), OrderType.Descending) },
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.OrderByDescending(x => x.FirstName).ToList();
+		}
+
+		[TestMethod()]
+		public void OrderByDescending_ThenByDescending_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				Orders =
+				{
+					new OrderExpression(nameof(Contact.FirstName).ToLower(), OrderType.Descending),
+					new OrderExpression(nameof(Contact.LastName).ToLower(), OrderType.Descending),
+				},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.OrderByDescending(x => x.FirstName).ThenByDescending(x => x.LastName).ToList();
+		}
+
+		[TestMethod()]
+		public void OrderBy_ThenByDescending_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				Orders =
+				{
+					new OrderExpression(nameof(Contact.FirstName).ToLower(), OrderType.Ascending),
+					new OrderExpression(nameof(Contact.LastName).ToLower(), OrderType.Descending),
+				},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.OrderBy(x => x.FirstName).ThenByDescending(x => x.LastName).ToList();
+		}
+
+		[TestMethod()]
+		public void OrderByDescending_ThenBy_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				Orders =
+				{
+					new OrderExpression(nameof(Contact.FirstName).ToLower(), OrderType.Descending),
+					new OrderExpression(nameof(Contact.LastName).ToLower(), OrderType.Ascending),
+				},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.OrderByDescending(x => x.FirstName).ThenBy(x => x.LastName).ToList();
 		}
 
 		[TestMethod()]
@@ -75,11 +305,12 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Select_ToList()
+		public void Select_Property_ToList()
 		{
 			var qe = new QueryExpression("contact")
 			{
-				ColumnSet = {Columns = { "firstname" }}
+				ColumnSet = {Columns = { "firstname" }},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -100,11 +331,12 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Select_1_ToList()
+		public void Select_New_ToList()
 		{
 			var qe = new QueryExpression("contact")
 			{
-				ColumnSet = {Columns = { "firstname" }}
+				ColumnSet = {Columns = { "firstname" }},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -164,7 +396,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 					{
 						new ConditionExpression("firstname", ConditionOperator.Equal, "test")
 					}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -196,7 +429,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 					{
 						new ConditionExpression("firstname", ConditionOperator.Equal, "test")
 					}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -484,7 +718,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 				LinkEntities =
 				{
 					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.Inner){Columns = {AllColumns = true}}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -516,7 +751,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 				LinkEntities =
 				{
 					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.Inner)
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -548,7 +784,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 				LinkEntities =
 				{
 					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.LeftOuter){Columns = {AllColumns = true}}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -581,7 +818,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 				LinkEntities =
 				{
 					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.LeftOuter) {Columns = {Columns = { "firstname" }}}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -613,8 +851,9 @@ namespace Crm.Sdk.Core.Linq.Tests
 				ColumnSet = {Columns = { "lastname" }},
 				LinkEntities =
 				{
-					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.Inner)
-				}
+					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.Inner){Columns = {Columns = { "firstname" }}}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -666,7 +905,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 							}
 						}
 					}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -705,7 +945,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 							}
 						}
 					}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
@@ -738,7 +979,8 @@ namespace Crm.Sdk.Core.Linq.Tests
 						new ConditionExpression("firstname", ConditionOperator.Equal, "test"),
 						new ConditionExpression("lastname", ConditionOperator.Equal, "test1")
 					}
-				}
+				},
+				PageInfo = {PageNumber = 1}
 			};
 
 			var crm = CreateOrganizationService(request =>
