@@ -906,7 +906,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 		private class LinkData
 		{
 			public readonly string Item1;
-			public readonly string Environment;
+			public string Environment;
 			public readonly LinkEntity Link;
 			public readonly string ParameterName;
 
@@ -952,35 +952,38 @@ namespace Microsoft.Xrm.Sdk.Linq
 				
 				var entityLogicalName = (method.Inner.Value as IEntityQuery).EntityLogicalName;
 				
-				LinkEntity linkEntity1;
+				LinkEntity linkEntity;
 				if (source.Count == 0)
 				{
 					qe.EntityName = (method.Outer.Value as IEntityQuery).EntityLogicalName;
 
 					source.Add(new LinkData(name1, null, environment, environment));
 
-					linkEntity1 = qe.AddLink(entityLogicalName, attributeName1, attributeName2, JoinOperator.Inner);
+					linkEntity = qe.AddLink(entityLogicalName, attributeName1, attributeName2, JoinOperator.Inner);
 				}
 				else
 				{
 					if (environment != null)
 					{
-						source = source.Select(l => new LinkData(l.ParameterName, l.Link, l.Item1, environment + "." + l.Environment)).ToList();
+						foreach (var linkData in source)
+						{
+							linkData.Environment = environment + "." + linkData.Environment;
+						}
 					}
 
 					var parentMember = GetUnderlyingMemberExpression(entityExpression).Member.Name;
 					
 					var linkEntity2 = source.Single(l => l.Item1 == parentMember).Link;
 					
-					linkEntity1 = linkEntity2 == null 
+					linkEntity = linkEntity2 == null 
 						? qe.AddLink(entityLogicalName, attributeName1, attributeName2, JoinOperator.Inner) 
 						: linkEntity2.AddLink(entityLogicalName, attributeName1, attributeName2, JoinOperator.Inner);
 				}
-				linkEntity1.EntityAlias = $"{name2}_{num++}";
-				source.Add(new LinkData(name2, linkEntity1, str, str));
+				linkEntity.EntityAlias = $"{name2}_{num++}";
+				source.Add(new LinkData(name2, linkEntity, str, str));
 				++i;
 			}
-			while (i < methods.Count && methods[i].Method.Name == "Join");
+			while (i < methods.Count && methods[i].Method.Name == nameof(Queryable.Join));
 			
 			--i;
 			var linkLookups = source.Select(l => new LinkLookup(l.ParameterName, l.Environment, l.Link)).ToList();

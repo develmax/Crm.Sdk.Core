@@ -481,7 +481,7 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Where21_ToList1()
+		public void Where_Constant_First_1_ToList()
 		{
 			var filter = new FilterExpression(LogicalOperator.And)
 			{
@@ -509,7 +509,7 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Where22_ToList()
+		public void Where_Constant_First_ToList()
 		{
 			const string nameConstant = "test";
 
@@ -569,7 +569,7 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Where_3_1_ToList()
+		public void Where_Property_Second_ToList()
 		{
 			string name = "test";
 
