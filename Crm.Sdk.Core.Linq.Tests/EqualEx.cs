@@ -44,6 +44,26 @@ namespace Crm.Sdk.Core.Linq.Tests
 			}
 		}
 
+		public static bool Equal(ColumnSet item0, ColumnSet item1)
+		{
+			if (item0.AllColumns != item1.AllColumns)
+			{
+				return false;
+			}
+
+			foreach (var a in item0.Columns)
+			{
+				bool flag = item1.Columns.Any(b => a == b);
+
+				if (flag == false)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
 		public static bool Equal(LinkEntity item0, LinkEntity item1)
 		{
 			if (item0.JoinOperator != item1.JoinOperator)
@@ -67,6 +87,11 @@ namespace Crm.Sdk.Core.Linq.Tests
 			}
 
 			if (item0.LinkToAttributeName != item1.LinkToAttributeName)
+			{
+				return false;
+			}
+
+			if (!Equal(item0.Columns, item1.Columns))
 			{
 				return false;
 			}
