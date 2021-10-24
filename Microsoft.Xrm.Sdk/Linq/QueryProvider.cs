@@ -699,11 +699,19 @@ namespace Microsoft.Xrm.Sdk.Linq
 				switch (methodName)
 				{
 					case nameof(Queryable.Join):
-						TranslateJoin(qe, list, ref i);
+					{
+						var data = TranslateJoin(qe, list, ref i);
+						projection = data.projection;
+						linkLookups = data.linkLookups;
 						break;
+					}
 					case nameof(Queryable.GroupJoin):
-						TranslateGroupJoin(qe, list, ref i);
+					{
+						var data = TranslateGroupJoin(qe, list, ref i);
+						projection = data.projection;
+						linkLookups = data.linkLookups;
 						break;
+					}
 					case nameof(Queryable.FirstOrDefault):
 					{
 						var methodData = GetMethodCallBody(mce);
@@ -901,10 +909,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 			public LinkData(string parameterName, LinkEntity link, string item1, string environment)
 			{
-				this.Item1 = item1;
-				this.Environment = environment;
+				Item1 = item1;
+				Environment = environment;
 				Link = link;
-				this.ParameterName = parameterName;
+				ParameterName = parameterName;
 			}
 		}
 

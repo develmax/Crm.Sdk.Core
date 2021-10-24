@@ -14,26 +14,6 @@ namespace Crm.Sdk.Core.Linq.Tests
 	[TestClass()]
 	public class QueryTests
 	{
-		private static readonly Dictionary<Type, string> _map = new Dictionary<Type, string>()
-		{
-			{typeof(Contact), "contact"}
-		};
-
-		private static readonly Dictionary<Type, object> _converters;
-
-		static QueryTests()
-		{
-			//var converter = new Mock<IConverter<Contact>>();
-			//converter
-			//	.Setup(converter1 => converter1.Convert(It.IsAny<Entity>()))
-			//	.Returns<Entity>(x => new Contact());
-
-			//_converters = new Dictionary<Type, object>()
-			//{
-			//	{typeof(Contact), converter.Object}
-			//};
-		}
-
 		[TestMethod()]
 		public void Create()
 		{
@@ -95,6 +75,56 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
+		public void Select_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {Columns = { "firstname" }}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Select(x => x.FirstName).ToList();
+		}
+
+		[TestMethod()]
+		public void Select_1_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {Columns = { "firstname" }}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Select(x => new {x.FirstName}).ToList();
+		}
+
+		[TestMethod()]
 		public void Where_ToList1()
 		{
 			var filter = new FilterExpression(LogicalOperator.And)
@@ -122,6 +152,70 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var a = query.Where(x => x.FirstName == "test").ToList();
 		}
 
+		[TestMethod()]
+		public void Where_Select_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {Columns = { "firstname" }},
+				Criteria =
+				{
+					Conditions =
+					{
+						new ConditionExpression("firstname", ConditionOperator.Equal, "test")
+					}
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => x.FirstName == "test").Select(x => x.FirstName).ToList();
+		}
+
+		[TestMethod()]
+		public void Where_Select_new_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {Columns = { "firstname" }},
+				Criteria =
+				{
+					Conditions =
+					{
+						new ConditionExpression("firstname", ConditionOperator.Equal, "test")
+					}
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => x.FirstName == "test").Select(x => new {x.FirstName}).ToList();
+		}
+		
 		[TestMethod()]
 		public void Where2_ToList()
 		{
@@ -379,6 +473,102 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var query = context.CreateQuery<Contact>();
 
 			var a = query.Where(x => x.LastName == "test1" && (x.FirstName == "test" || x.FirstName == "test1")).ToList();
+		}
+
+		[TestMethod()]
+		public void Join_Inner_ToList()
+		{
+			var queryTest = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				LinkEntities =
+				{
+					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.Inner)
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(queryTest, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = 
+					from contact in context.CreateQuery<Contact>()
+					join user in context.CreateQuery<SystemUser>() on contact.OwnerId equals user.SystemUserId
+					select new {contact, user};
+
+			var a = query.ToList();
+		}
+
+		[TestMethod()]
+		public void Join_Inner_Select_ToList()
+		{
+			var queryTest = new QueryExpression("contact")
+			{
+				ColumnSet = {Columns = { "lastname" }},
+				LinkEntities =
+				{
+					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.Inner)
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(queryTest, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = 
+				from contact in context.CreateQuery<Contact>()
+				join user in context.CreateQuery<SystemUser>() on contact.OwnerId equals user.SystemUserId
+				select contact.LastName;
+
+			var a = query.ToList();
+		}
+		
+		[TestMethod()]
+		public void Join_Inner_Select_New_ToList()
+		{
+			var queryTest = new QueryExpression("contact")
+			{
+				ColumnSet = {Columns = { "lastname" }},
+				LinkEntities =
+				{
+					new LinkEntity("contact", "systemuser", "ownerid", "systemuserid", JoinOperator.Inner)
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(queryTest, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = 
+				from contact in context.CreateQuery<Contact>()
+				join user in context.CreateQuery<SystemUser>() on contact.OwnerId equals user.SystemUserId
+				select new {contact.LastName, user.FirstName};
+
+			var a = query.ToList();
 		}
 
 		//[TestMethod()]

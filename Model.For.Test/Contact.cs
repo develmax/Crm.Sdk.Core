@@ -43,6 +43,13 @@ namespace Model.For.Test
 		public SystemUser() : base(EntityLogicalName) { }
 		public const string EntityLogicalName = "systemuser";
 
+		[AttributeLogicalName("systemuserid")]
+		public EntityReference SystemUserId
+		{
+			get => GetAttributeValue<EntityReference>("systemuserid");
+			set => SetAttributeValue("systemuserid", value);
+		}
+
 		[AttributeLogicalName("firstname")]
 		public string FirstName
 		{
