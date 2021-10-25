@@ -58,6 +58,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 		});
 		private static readonly Dictionary<string, HashSet<string>> _followingMethodLookup = new Dictionary<string, HashSet<string>>
 		{
+			{nameof(Queryable.Count), _followingRoot.ToHashSet()},
 			{nameof(Queryable.Join), _followingJoin.ToHashSet()},
 			{nameof(Queryable.GroupJoin), _followingGroupJoin.ToHashSet()},
 			{nameof(Queryable.Where), _followingWhere.ToHashSet()},
@@ -214,12 +215,14 @@ namespace Microsoft.Xrm.Sdk.Linq
 		{
 			NavigationSource source = null;
 			var linkLookups = new List<LinkLookup>();
-			return Execute<TElement>(GetQueryExpression(expression, out var throwIfSequenceIsEmpty, out var throwIfSequenceNotSingle, out var projection, ref source, ref linkLookups), throwIfSequenceIsEmpty, throwIfSequenceNotSingle, projection, source, linkLookups);
+			var query = GetQueryExpression(expression, out var throwIfSequenceIsEmpty, out var throwIfSequenceNotSingle, out var projection, ref source, ref linkLookups);
+			return Execute<TElement>(query, throwIfSequenceIsEmpty, throwIfSequenceNotSingle, projection, source, linkLookups);
 		}
 
 		private IEnumerable<TElement> Execute<TElement>(QueryExpression qe, bool throwIfSequenceIsEmpty, bool throwIfSequenceNotSingle, Projection projection, NavigationSource source, List<LinkLookup> linkLookups)
 		{
-			return new PagedItemCollection<TElement>(Execute(qe, throwIfSequenceIsEmpty, throwIfSequenceNotSingle, projection, source, linkLookups, out var pagingCookie, out var moreRecords).Cast<TElement>(), qe, pagingCookie, moreRecords);
+			var en = Execute(qe, throwIfSequenceIsEmpty, throwIfSequenceNotSingle, projection, source, linkLookups, out var pagingCookie, out var moreRecords).Cast<TElement>();
+			return new PagedItemCollection<TElement>(en, qe, pagingCookie, moreRecords);
 		}
 
 		private IEnumerable Execute(QueryExpression qe, bool throwIfSequenceIsEmpty, bool throwIfSequenceNotSingle, Projection projection, NavigationSource source, List<LinkLookup> linkLookups, out string pagingCookie, out bool moreRecords)
@@ -679,7 +682,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			var take = new int?();
 			var qe = new QueryExpression();
 			var list = expression.GetMethodsPostorder().ToList();
-			var isFirstJoin = list.Count > 0 && (list[0].Method.Name == nameof(Queryable.Join) || list[0].Method.Name == nameof(Queryable.GroupJoin));
+			var isFirstJoin = list.Count > 0 && (list[0].Method.Name.In(nameof(Queryable.Join), nameof(Queryable.GroupJoin)));
 			string beforeMethodName = null;
 			for (var i = 0; i < list.Count; ++i)
 			{
@@ -698,6 +701,12 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 				switch (methodName)
 				{
+					case nameof(Queryable.Count):
+					{
+						qe.PageInfo.ReturnTotalRecordCount = true;
+						throw new NotImplementedException();
+						break;
+					}
 					case nameof(Queryable.Join):
 					{
 						var data = TranslateJoin(qe, list, ref i);
@@ -831,7 +840,8 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 						TranslateEntityName(qe, expression);
 						var operand2 = (mce.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
-						return GetQueryExpression(TranslateSelectMany(list, i, qe, operand2, ref source), out throwIfSequenceIsEmpty, out throwIfSequenceNotSingle, out projection, ref source, ref linkLookups);
+						var selectMany = TranslateSelectMany(list, i, qe, operand2, ref source);
+						return GetQueryExpression(selectMany, out throwIfSequenceIsEmpty, out throwIfSequenceNotSingle, out projection, ref source, ref linkLookups);
 					}
 				}
 			}
@@ -1245,8 +1255,17 @@ namespace Microsoft.Xrm.Sdk.Linq
 		private void TranslateWhereCondition(BinaryExpression be, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, Func<Expression, LinkLookup> getLinkLookup, bool negate)
 		{
 			var entityExpression = FindValidEntityExpression(be.Left, nameof(Queryable.Where));
+			object conditionValue;
+			if (entityExpression == null)
+			{
+				entityExpression = FindValidEntityExpression(be.Right, nameof(Queryable.Where));
+				conditionValue = TranslateExpressionToConditionValue(be.Left);
+			}
+			else
+			{
+				conditionValue = TranslateExpressionToConditionValue(be.Right);
+			}
 			var attributeName = TranslateExpressionToAttributeName(entityExpression);
-			var conditionValue = TranslateExpressionToConditionValue(be.Right);
 			var linkEntityAlias = GetLinkEntityAlias(entityExpression, getLinkLookup);
 			ConditionExpression condition;
 			if (conditionValue != null)
@@ -1745,7 +1764,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 				case MethodCallExpression methodCallExpression when _validMethods.Contains(methodCallExpression.Method.Name):
 					return FindValidEntityExpression(methodCallExpression.Object, operation);
 				default:
-					throw new NotSupportedException($"Invalid '{operation}' condition. An entity member is invoking an invalid property or method.");
+					return null;//throw new NotSupportedException($"Invalid '{operation}' condition. An entity member is invoking an invalid property or method.");
 			}
 		}
 
