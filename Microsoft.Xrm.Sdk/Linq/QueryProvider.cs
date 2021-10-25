@@ -1102,9 +1102,16 @@ namespace Microsoft.Xrm.Sdk.Linq
 				}
 
 				var negate1 = negate;
-				if (TranslateWhere(be.Left, ref negate1) is MethodCallExpression methodCallExpression && (methodCallExpression.Method.Name == "Compare" || _supportedMethods.Contains(methodCallExpression.Method.Name)))
+				if (TranslateWhere(be.Left, ref negate1) is MethodCallExpression methodCallExpression)
 				{
-					TranslateWhereBoolean(parameterName, methodCallExpression, parentFilter, getFilter, linkLookups, be, negate1);
+					if (methodCallExpression.Method.Name == "Compare" || _supportedMethods.Contains(methodCallExpression.Method.Name))
+					{
+						TranslateWhereBoolean(parameterName, methodCallExpression, parentFilter, getFilter, linkLookups, be, negate1);
+					}
+					else
+					{
+						TranslateWhereCondition(be, parentFilter, getFilter, GetLinkLookup(parameterName, linkLookups), negate);
+					}
 				}
 				else
 				{
@@ -1128,20 +1135,75 @@ namespace Microsoft.Xrm.Sdk.Linq
 		{
 			switch (body)
 			{
-				case BinaryExpression be:
-					if (be.Left is ConstantExpression left && (be.NodeType == ExpressionType.AndAlso && Equals(left.Value, true) || be.NodeType == ExpressionType.OrElse && Equals(left.Value, false)))
+				case MemberExpression me:
+				{
+					var value = TranslateExpressionToValue(me);
+					if (value is bool boolValue)
 					{
-						TranslateWhereBoolean(parameterName, be.Right, parentFilter, getFilter, linkLookups, parent, negate);
+						if (boolValue)
+						{
+							return;
+						}
+						else
+						{
+							throw new NotImplementedException();
+						}
+					}
+					break;
+				}
+				case ConstantExpression ce:
+				{
+					if (ce.Value is bool boolValue)
+					{
+						if (boolValue)
+						{
+							return;
+						}
+						else
+						{
+							throw new NotImplementedException();
+						}
+					}
+					break;
+				}
+				case BinaryExpression be:
+				{	
+					if (be.Left is ConstantExpression left)
+					{
+						if (be.NodeType == ExpressionType.AndAlso && Equals(left.Value, true))
+						{
+							TranslateWhereBoolean(parameterName, be.Right, parentFilter, getFilter, linkLookups, parent, negate);
+						}
+						else if (be.NodeType == ExpressionType.OrElse && Equals(left.Value, false))
+						{
+							TranslateWhereBoolean(parameterName, be.Right, parentFilter, getFilter, linkLookups, parent, negate);
+						}
+						//else if (be.NodeType == ExpressionType.Equal)
+						//{
+						//	throw new NotImplementedException();
+						//}
+						//else if (be.NodeType == ExpressionType.NotEqual)
+						//{
+						//	throw new NotImplementedException();
+						//}
+						else
+						{
+							TranslateWhere(parameterName, be, parentFilter, getFilter, linkLookups, negate);
+						}
 					}
 					else
 					{
 						TranslateWhere(parameterName, be, parentFilter, getFilter, linkLookups, negate);
 					}
 					break;
+				}
 				case MethodCallExpression mce:
+				{
 					TranslateWhereMethodCall(mce, parentFilter, getFilter, GetLinkLookup(parameterName, linkLookups), parent, negate);
 					break;
+				}
 				case UnaryExpression unaryExpression:
+				{
 					if (unaryExpression.NodeType == ExpressionType.Convert)
 					{
 						TranslateWhereBoolean(parameterName, unaryExpression.Operand, parentFilter, getFilter, linkLookups, parent, negate);
@@ -1156,6 +1218,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 						TranslateWhereBoolean(parameterName, unaryExpression.Operand, parentFilter, getFilter, linkLookups, parent, !negate);
 					}
 					break;
+				}
 				default:
 				{
 					if (!(body.Type == typeof(bool)))

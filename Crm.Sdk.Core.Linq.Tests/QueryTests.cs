@@ -30,7 +30,21 @@ namespace Crm.Sdk.Core.Linq.Tests
 		[TestMethod()]
 		public void ToList()
 		{
-			var crm = CreateOrganizationService(request => { });
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
 
 			var context = new OrganizationServiceContext(crm);
 
@@ -270,15 +284,103 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Where_ToList()
+		public void Where_Constant_ToList()
 		{
-			var crm = CreateOrganizationService(request => { });
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
 
 			var context = new OrganizationServiceContext(crm);
 
 			var query = context.CreateQuery<Contact>();
 
 			var a = query.Where(x => true).ToList();
+
+			Assert.AreEqual(0, a.Count);
+		}
+
+		[TestMethod()]
+		public void Where_Constant_False_ToList()
+		{
+			var crm = CreateOrganizationService(request => { Assert.Fail(); });
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => false).ToList();
+
+			Assert.AreEqual(0, a.Count);
+		}
+
+		[TestMethod()]
+		public void Where_Value_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var flag = true;
+
+			var a = query.Where(x => flag).ToList();
+
+			Assert.AreEqual(0, a.Count);
+		}
+
+		[TestMethod()]
+		public void Where_Value_False_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var flag = false;
+
+			var a = query.Where(x => flag).ToList();
 
 			Assert.AreEqual(0, a.Count);
 		}
@@ -618,6 +720,62 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var query = context.CreateQuery<Contact>();
 
 			var a = query.Where(x => "test" == x.FirstName).ToList();
+		}
+
+		[TestMethod()]
+		public void Where_Constant_Constant_True_ToList()
+		{
+			var filter = new FilterExpression(LogicalOperator.And)
+			{
+				Conditions =
+				{
+					new ConditionExpression("firstname", ConditionOperator.Equal, "test")
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(filter, queryExpression.Criteria);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => "test" == "test").ToList();
+		}
+
+		[TestMethod()]
+		public void Where_Constant_Constant_False_ToList()
+		{
+			var filter = new FilterExpression(LogicalOperator.And)
+			{
+				Conditions =
+				{
+					new ConditionExpression("firstname", ConditionOperator.Equal, "test")
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(filter, queryExpression.Criteria);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => "test" == "1").ToList();
 		}
 
 		[TestMethod()]
