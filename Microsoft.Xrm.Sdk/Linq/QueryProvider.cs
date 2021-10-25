@@ -1081,15 +1081,19 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 		private void TranslateWhere(QueryExpression qe, string parameterName, Expression body, List<LinkLookup> linkLookups)
 		{
-			TranslateWhereBoolean(parameterName, body, null, GetFilter(qe), linkLookups, null, false);
+			var filter = GetFilter(qe);
+
+			TranslateWhereBoolean(parameterName, body, null, filter, linkLookups, null, false);
 		}
 
 		private void TranslateWhere(string parameterName, BinaryExpression be, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, List<LinkLookup> linkLookups, bool negate)
 		{
 			if (_booleanLookup.ContainsKey(be.NodeType))
 			{
-				parentFilter = GetFilter(FindEntityExpression(be.Left), parentFilter, getFilter);
-				var parentFilter1 = new FilterExpressionWrapper(parentFilter.Filter.AddFilter(_booleanLookup[be.NodeType]), parentFilter.Alias);
+				var entityExr = FindEntityExpression(be.Left);
+				parentFilter = GetFilter(entityExr, parentFilter, getFilter);
+				var filter = parentFilter.Filter.AddFilter(_booleanLookup[be.NodeType]);
+				var parentFilter1 = new FilterExpressionWrapper(filter, parentFilter.Alias);
 				parentFilter1.Filter.FilterOperator = negate ? NegateOperator(parentFilter1.Filter.FilterOperator) : parentFilter1.Filter.FilterOperator;
 				TranslateWhereBoolean(parameterName, be.Left, parentFilter1, getFilter, linkLookups, be, negate);
 				TranslateWhereBoolean(parameterName, be.Right, parentFilter1, getFilter, linkLookups, be, negate);
@@ -1122,13 +1126,13 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 		private Expression TranslateWhere(Expression exp, ref bool negate)
 		{
-			if (!(exp is UnaryExpression unaryExpression) || unaryExpression.NodeType != ExpressionType.Not)
+			if (exp is UnaryExpression unaryExpression && unaryExpression.NodeType == ExpressionType.Not)
 			{
-				return exp;
+				negate = !negate;
+				return TranslateWhere(unaryExpression.Operand, ref negate);
 			}
 
-			negate = !negate;
-			return TranslateWhere(unaryExpression.Operand, ref negate);
+			return exp;
 		}
 
 		private void TranslateWhereBoolean(string parameterName, Expression body, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, List<LinkLookup> linkLookups, BinaryExpression parent, bool negate)
@@ -1199,7 +1203,8 @@ namespace Microsoft.Xrm.Sdk.Linq
 				}
 				case MethodCallExpression mce:
 				{
-					TranslateWhereMethodCall(mce, parentFilter, getFilter, GetLinkLookup(parameterName, linkLookups), parent, negate);
+					var linkLookup = GetLinkLookup(parameterName, linkLookups);
+					TranslateWhereMethodCall(mce, parentFilter, getFilter, linkLookup, parent, negate);
 					break;
 				}
 				case UnaryExpression unaryExpression:
@@ -1262,7 +1267,8 @@ namespace Microsoft.Xrm.Sdk.Linq
 			}
 
 			condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
-			AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, null);
+			var filter = GetFilter(entityExpression, parentFilter, getFilter);
+			AddCondition(filter, condition, null);
 		}
 
 		private void TranslateWhereMethodCall(MethodCallExpression mce, FilterExpressionWrapper parentFilter, Func<Expression, FilterExpressionWrapper> getFilter, Func<Expression, LinkLookup> getLinkLookup, BinaryExpression parent, bool negate)
@@ -1280,15 +1286,20 @@ namespace Microsoft.Xrm.Sdk.Linq
 						negate = !negate;
 					}
 
-					if ((parent.NodeType == ExpressionType.Equal || parent.NodeType == ExpressionType.NotEqual) && Equals(TranslateExpressionToConditionValue(parent.Right), false))
+					if (parent.NodeType == ExpressionType.Equal || parent.NodeType == ExpressionType.NotEqual)
 					{
-						negate = !negate;
+						var value = TranslateExpressionToConditionValue(parent.Right);
+						if (Equals(value, false))
+						{
+							negate = !negate;
+						}
 					}
 				}
 				var condition = TranslateConditionMethodExpression(mce, attributeName, conditionValue);
 				condition.EntityName = linkEntityAlias;
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
-				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, null);
+				var filter = GetFilter(entityExpression, parentFilter, getFilter);
+				AddCondition(filter, condition, null);
 			}
 			else if (mce.Method.Name == "Compare" && mce.Arguments.Count == 2)
 			{
@@ -1303,14 +1314,19 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 				var condition = new ConditionExpression(linkEntityAlias, attributeName, conditionOperator, conditionValue);
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
-				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, null);
+				var filter = GetFilter(entityExpression, parentFilter, getFilter);
+				AddCondition(filter, condition, null);
 			}
 			else if (mce.Method.Name == "Like" && mce.Arguments.Count == 2)
 			{
 				var entityExpression = FindValidEntityExpression(mce.Arguments[0], nameof(Queryable.Where));
-				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression), ConditionOperator.Like, TranslateExpressionToConditionValue(mce.Arguments[1]));
+				var alias = GetLinkEntityAlias(entityExpression, getLinkLookup);
+				var attributeNme = TranslateExpressionToAttributeName(entityExpression);
+				var value = TranslateExpressionToConditionValue(mce.Arguments[1]);
+				var condition = new ConditionExpression(alias, attributeNme, ConditionOperator.Like, value);
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
-				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, null);
+				var filter = GetFilter(entityExpression, parentFilter, getFilter);
+				AddCondition(filter, condition, null);
 			}
 			else
 			{
@@ -1320,9 +1336,12 @@ namespace Microsoft.Xrm.Sdk.Linq
 				}
 
 				var entityExpression = FindValidEntityExpression(mce, nameof(Queryable.Where));
-				var condition = new ConditionExpression(GetLinkEntityAlias(entityExpression, getLinkLookup), TranslateExpressionToAttributeName(entityExpression), ConditionOperator.Equal, true);
+				var alias = GetLinkEntityAlias(entityExpression, getLinkLookup);
+				var attributeName = TranslateExpressionToAttributeName(entityExpression);
+				var condition = new ConditionExpression(alias, attributeName, ConditionOperator.Equal, true);
 				condition.Operator = negate ? NegateOperator(condition.Operator) : condition.Operator;
-				AddCondition(GetFilter(entityExpression, parentFilter, getFilter), condition, null);
+				var filter = GetFilter(entityExpression, parentFilter, getFilter);
+				AddCondition(filter, condition, null);
 			}
 		}
 
