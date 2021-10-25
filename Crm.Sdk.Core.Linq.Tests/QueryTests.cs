@@ -357,7 +357,7 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
-		public void Where_ToList1()
+		public void Where_Property_ToList()
 		{
 			var filter = new FilterExpression(LogicalOperator.And)
 			{
@@ -382,6 +382,118 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var query = context.CreateQuery<Contact>();
 
 			var a = query.Where(x => x.FirstName == "test").ToList();
+		}
+
+		[TestMethod()]
+		public void Where_Property_1_ToList()
+		{
+			var filter = new FilterExpression(LogicalOperator.And)
+			{
+				Conditions =
+				{
+					new ConditionExpression("firstname", ConditionOperator.Equal, "test" + "test1")
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(filter, queryExpression.Criteria);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => x.FirstName == "test" + "test1").ToList();
+		}
+		
+		[TestMethod()]
+		public void Where_Property_Contains_ToList()
+		{
+			var filter = new FilterExpression(LogicalOperator.And)
+			{
+				Conditions =
+				{
+					new ConditionExpression("firstname", ConditionOperator.Like, "%test%")
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(filter, queryExpression.Criteria);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => x.FirstName.Contains("test")).ToList();
+		}
+
+		[TestMethod()]
+		public void Where_Property_StartsWith_ToList()
+		{
+			var filter = new FilterExpression(LogicalOperator.And)
+			{
+				Conditions =
+				{
+					new ConditionExpression("firstname", ConditionOperator.Like, "test%")
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(filter, queryExpression.Criteria);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => x.FirstName.StartsWith("test")).ToList();
+		}
+
+		[TestMethod()]
+		public void Where_Property_EndsWith_ToList()
+		{
+			var filter = new FilterExpression(LogicalOperator.And)
+			{
+				Conditions =
+				{
+					new ConditionExpression("firstname", ConditionOperator.Like, "%test")
+				}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(filter, queryExpression.Criteria);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Where(x => x.FirstName.EndsWith("test")).ToList();
 		}
 
 		[TestMethod()]

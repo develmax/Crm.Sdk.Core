@@ -78,10 +78,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 		};
 		private static readonly string[] _supportedMethods = 
 		{
-			"Equals",
-			"Contains",
-			"StartsWith",
-			"EndsWith"
+			nameof(object.Equals),
+			nameof(string.Contains),
+			nameof(string.StartsWith),
+			nameof(string.EndsWith)
 		};
 		private static readonly HashSet<string> _validMethods = _supportedMethods.Concat(new[]
 		{
@@ -1268,18 +1268,18 @@ namespace Microsoft.Xrm.Sdk.Linq
 			ConditionExpression conditionExpression;
 			switch (mce.Method.Name)
 			{
-				case "Equals":
+				case nameof(object.Equals):
 					conditionExpression = value == null 
 						? new ConditionExpression(attributeName, ConditionOperator.Null) 
 						: new ConditionExpression(attributeName, ConditionOperator.Equal, value);
 					break;
-				case "Contains":
+				case nameof(string.Contains):
 					conditionExpression = new ConditionExpression(attributeName, ConditionOperator.Like, "%" + value + "%");
 					break;
-				case "StartsWith":
+				case nameof(string.StartsWith):
 					conditionExpression = new ConditionExpression(attributeName, ConditionOperator.Like, value + "%");
 					break;
-				case "EndsWith":
+				case nameof(string.EndsWith):
 					conditionExpression = new ConditionExpression(attributeName, ConditionOperator.Like, "%" + value);
 					break;
 				default:
