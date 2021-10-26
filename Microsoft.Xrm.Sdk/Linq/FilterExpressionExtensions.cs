@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xrm.Sdk.Query;
-using System.Collections.ObjectModel;
 
 namespace Microsoft.Xrm.Sdk.Linq
 {

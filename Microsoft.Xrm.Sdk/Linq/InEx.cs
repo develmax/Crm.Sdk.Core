@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Microsoft.Xrm.Sdk.Linq
+﻿namespace Microsoft.Xrm.Sdk.Linq
 {
 	public static class InEx
 	{
