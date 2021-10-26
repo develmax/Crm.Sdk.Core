@@ -110,20 +110,13 @@ namespace Crm.Sdk.Core.Linq.Tests
 		[TestMethod()]
 		public void NoLock_ToList()
 		{
-			var qe = new QueryExpression("contact")
-			{
-				ColumnSet = {AllColumns = false},
-				PageInfo = {Count = 0, ReturnTotalRecordCount = true}
-			};
-
 			var crm = CreateOrganizationService(request =>
 			{
 				Assert.AreEqual("RetrieveMultiple", request.RequestName);
 
 				var queryExpression = request.Parameters["Query"] as QueryExpression;
 				Assert.IsNotNull(queryExpression);
-
-				EqualEx.AreEqual(qe, queryExpression);
+				Assert.IsTrue(queryExpression.NoLock);
 			});
 
 			var context = new OrganizationServiceContext(crm);

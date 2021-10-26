@@ -58,6 +58,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 		});
 		private static readonly Dictionary<string, HashSet<string>> _followingMethodLookup = new Dictionary<string, HashSet<string>>
 		{
+			{nameof(QueryableNoLock.NoLock), _followingRoot.ToHashSet()},
 			{nameof(Queryable.Count), _followingRoot.ToHashSet()},
 			{nameof(Queryable.Join), _followingJoin.ToHashSet()},
 			{nameof(Queryable.GroupJoin), _followingGroupJoin.ToHashSet()},
@@ -701,6 +702,11 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 				switch (methodName)
 				{
+					case nameof(QueryableNoLock.NoLock):
+					{
+						qe.NoLock = true;
+						break;
+					}
 					case nameof(Queryable.Count):
 					{
 						qe.PageInfo.ReturnTotalRecordCount = true;
