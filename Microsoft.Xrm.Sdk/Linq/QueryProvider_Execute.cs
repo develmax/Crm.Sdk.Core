@@ -127,7 +127,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 				}
 				entities = entityCollection1.Entities;
 			}
-			return projection != null ? ExecuteAnonymousType(entities, projection, linkLookups) : entities.Select(AttachToContext);
+			return projection != null ? ExecuteAnonymousType(entities, projection, linkLookups) : entities;
 		}
 		
 		private (bool Adjust, bool MoreRecordAfterAdjust) AdjustPagingInfo(OrganizationRequest request, QueryExpression qe, NavigationSource source)
@@ -243,7 +243,11 @@ namespace Microsoft.Xrm.Sdk.Linq
 			{
 				__TransparentIdentifier4 = _param0,
 				result = _param0.element as Entity
-			}).Select(_param1 => _param1.result == null || !(_param1.result.Id != Guid.Empty) ? _param1.__TransparentIdentifier4.element : AttachToContext(_param1.result));
+			}).Select(_param1 => 
+				_param1.result == null || !(_param1.result.Id != Guid.Empty) 
+					? _param1.__TransparentIdentifier4.element 
+					: _param1.result
+					);
 		}
 
 		private EntityCollection RetrieveEntityCollection(OrganizationRequest request, NavigationSource source)

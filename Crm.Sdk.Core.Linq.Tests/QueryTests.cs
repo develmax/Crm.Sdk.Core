@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xrm.Sdk;
@@ -14,6 +15,48 @@ namespace Crm.Sdk.Core.Linq.Tests
 	[TestClass()]
 	public class QueryTests
 	{
+		private IOrganizationService CreateOrganizationService(Action<OrganizationRequest> action)
+		{
+			var crm = new Mock<IOrganizationService>();
+			crm
+				.Setup(s => s.Execute(It.IsAny<OrganizationRequest>()))
+				.Returns<OrganizationRequest>(q =>
+				{
+					action(q);
+
+					var responce = new RetrieveMultipleResponse()
+					{
+						Results = new ParameterCollection
+						{
+							{ "EntityCollection", new EntityCollection() }
+						}
+					};
+					return responce;
+				});
+			return crm.Object;
+		}
+		
+		private IOrganizationService CreateOrganizationService(Action<OrganizationRequest> action, IList<Entity> responseCollection)
+		{
+			var crm = new Mock<IOrganizationService>();
+			crm
+				.Setup(s => s.Execute(It.IsAny<OrganizationRequest>()))
+				.Returns<OrganizationRequest>(q =>
+				{
+					action(q);
+
+					var response = new RetrieveMultipleResponse()
+					{
+						Results = new ParameterCollection
+						{
+							{ "EntityCollection", new EntityCollection(responseCollection) }
+						}
+					};
+					return response;
+				});
+			return crm.Object;
+		}
+
 		[TestMethod()]
 		public void Create()
 		{
@@ -51,6 +94,84 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var query = context.CreateQuery<Contact>();
 
 			var a = query.ToList();
+		}
+
+		[TestMethod()]
+		public void First()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1, Count = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			}, new [] {new Contact()});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Select(x => x).First();
+		}
+
+		[TestMethod()]
+		public void Cast_ToList()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			}, new [] {new Contact()});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Cast<Entity>().ToList();
+		}
+
+		[TestMethod()]
+		public void FirstOrDefault()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {Count = 1, PageNumber = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.FirstOrDefault();
 		}
 
 		[TestMethod()]
@@ -160,32 +281,6 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var query = context.CreateQuery<Contact>();
 
 			var a = query.Where(x => x.FirstName == "test").NoLock().ToList();
-		}
-
-		[TestMethod()]
-		public void FirstOrDefault()
-		{
-			var qe = new QueryExpression("contact")
-			{
-				ColumnSet = {AllColumns = true},
-				PageInfo = {Count = 1, PageNumber = 1}
-			};
-
-			var crm = CreateOrganizationService(request =>
-			{
-				Assert.AreEqual("RetrieveMultiple", request.RequestName);
-
-				var queryExpression = request.Parameters["Query"] as QueryExpression;
-				Assert.IsNotNull(queryExpression);
-
-				EqualEx.AreEqual(qe, queryExpression);
-			});
-
-			var context = new OrganizationServiceContext(crm);
-
-			var query = context.CreateQuery<Contact>();
-
-			var a = query.FirstOrDefault();
 		}
 
 		[TestMethod()]
@@ -466,27 +561,6 @@ namespace Crm.Sdk.Core.Linq.Tests
 			var a = query.Where(x => flag).ToList();
 
 			Assert.AreEqual(0, a.Count);
-		}
-
-		private IOrganizationService CreateOrganizationService(Action<OrganizationRequest> action)
-		{
-			var crm = new Mock<IOrganizationService>();
-			crm
-				.Setup(s => s.Execute(It.IsAny<OrganizationRequest>()))
-				.Returns<OrganizationRequest>(q =>
-				{
-					action(q);
-
-					var responce = new RetrieveMultipleResponse()
-					{
-						Results = new ParameterCollection
-						{
-							{ "EntityCollection", new EntityCollection() }
-						}
-					};
-					return responce;
-				});
-			return crm.Object;
 		}
 
 		[TestMethod()]

@@ -14,7 +14,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 	internal sealed partial class QueryProvider
 	{
 		private static readonly string[] _followingRoot = new string[1];
-		private static readonly IEnumerable<string> _followingFirst = _followingRoot.Concat(new[] {nameof(Enumerable.ToList) });
+		private static readonly IEnumerable<string> _followingFirst = _followingRoot.Concat(new[]
+		{
+			nameof(Enumerable.ToList)
+		});
 		private static readonly IEnumerable<string> _followingTake = _followingFirst.Concat(new[]
 		{
 			nameof(Queryable.Select),
@@ -53,28 +56,101 @@ namespace Microsoft.Xrm.Sdk.Linq
 		{
 			nameof(Queryable.SelectMany)
 		});
+		private static readonly HashSet<string> _followingCount = new()
+		{
+			nameof(Queryable.Select),
+			nameof(Queryable.Where),
+			nameof(Queryable.OrderBy),
+			nameof(Queryable.OrderByDescending),
+			nameof(Queryable.ThenBy),
+			nameof(Queryable.ThenByDescending),
+			nameof(Queryable.Skip),
+			nameof(Queryable.Take),
+			nameof(Queryable.Distinct),
+			nameof(Queryable.OfType),
+			nameof(Queryable.SelectMany),
+			nameof(Queryable.Join),
+			nameof(Queryable.GroupJoin),
+			nameof(Queryable.GroupBy)
+		};
+		private static readonly IEnumerable<string> _followingNoLock = _followingSkip.Concat(new[]
+		{
+			nameof(Queryable.Select),
+			nameof(Queryable.Where),
+			nameof(Queryable.OrderBy),
+			nameof(Queryable.OrderByDescending),
+			nameof(Queryable.ThenBy),
+			nameof(Queryable.ThenByDescending),
+			nameof(Queryable.Skip),
+			nameof(Queryable.Take),
+			nameof(Queryable.Distinct),
+			nameof(Queryable.OfType)
+		});
+
+		private static readonly HashSet<string> _notSupported = new()
+		{
+			nameof(Queryable.TakeWhile),
+			nameof(Queryable.SkipWhile),
+			nameof(Queryable.Concat),
+			nameof(Queryable.Zip),
+			nameof(Queryable.Union),
+			nameof(Queryable.Intersect),
+			nameof(Queryable.Except),
+			nameof(Queryable.ElementAt),
+			nameof(Queryable.ElementAtOrDefault),
+			nameof(Queryable.DefaultIfEmpty),
+			nameof(Queryable.Contains),
+			nameof(Queryable.Reverse),
+			nameof(Queryable.SequenceEqual),
+			nameof(Queryable.Any),
+			nameof(Queryable.All),
+			nameof(Queryable.LongCount),
+			nameof(Queryable.Min),
+			nameof(Queryable.Max),
+			nameof(Queryable.Sum),
+			nameof(Queryable.Average),
+			nameof(Queryable.SkipLast),
+			nameof(Queryable.TakeLast),
+			nameof(Queryable.Append),
+			nameof(Queryable.Prepend)
+		};
+
+		public static readonly HashSet<string> _notReturnQueryable = new ()
+		{
+			nameof(Queryable.First),
+			nameof(Queryable.FirstOrDefault),
+			nameof(Queryable.Last),
+			nameof(Queryable.LastOrDefault),
+			nameof(Queryable.Single),
+			nameof(Queryable.SingleOrDefault)
+		};
+
 		private static readonly Dictionary<string, HashSet<string>> _followingMethodLookup = new()
 		{
-			{nameof(QueryableNoLock.NoLock), _followingRoot.ToHashSet()},
-			{nameof(Queryable.Count), _followingRoot.ToHashSet()},
-			{nameof(Queryable.Join), _followingJoin.ToHashSet()},
-			{nameof(Queryable.GroupJoin), _followingGroupJoin.ToHashSet()},
+			// Queryable return
+			{nameof(Queryable.Select), _followingSelect.ToHashSet()},
 			{nameof(Queryable.Where), _followingWhere.ToHashSet()},
+			{nameof(Queryable.Skip), _followingSkip.ToHashSet()},
+			{nameof(Queryable.Take), _followingTake.ToHashSet()},
 			{nameof(Queryable.OrderBy), _followingOrderBy.ToHashSet()},
 			{nameof(Queryable.OrderByDescending), _followingOrderBy.ToHashSet()},
 			{nameof(Queryable.ThenBy), _followingOrderBy.ToHashSet()},
 			{nameof(Queryable.ThenByDescending), _followingOrderBy.ToHashSet()},
-			{nameof(Queryable.Select), _followingSelect.ToHashSet()},
-			{nameof(Queryable.Skip), _followingSkip.ToHashSet()},
-			{nameof(Queryable.Take), _followingTake.ToHashSet()},
+			{nameof(QueryableNoLock.NoLock), _followingNoLock.ToHashSet()},
+			{nameof(Queryable.Join), _followingJoin.ToHashSet()},
+			{nameof(Queryable.GroupJoin), _followingGroupJoin.ToHashSet()},
+			{nameof(Queryable.SelectMany), _followingOrderBy.ToHashSet()},
+			{nameof(Queryable.Distinct), _followingSkip.ToHashSet()},
+			{nameof(Queryable.Cast), new[] {nameof(Queryable.Select)}.ToHashSet()},
+
+			// single return
+			{nameof(Queryable.Count), _followingCount.ToHashSet()},
 			{nameof(Queryable.First), _followingFirst.ToHashSet()},
 			{nameof(Queryable.FirstOrDefault), _followingFirst.ToHashSet()},
 			{nameof(Queryable.Single), _followingFirst.ToHashSet()},
 			{nameof(Queryable.SingleOrDefault), _followingFirst.ToHashSet()},
-			{nameof(Queryable.SelectMany), _followingOrderBy.ToHashSet()},
-			{nameof(Queryable.Distinct), _followingSkip.ToHashSet()},
-			{nameof(Queryable.Cast), new[] {"Select"}.ToHashSet()}
 		};
+		
 		private static readonly string[] _supportedMethods = 
 		{
 			nameof(object.Equals),
@@ -88,7 +164,9 @@ namespace Microsoft.Xrm.Sdk.Linq
 			"Like",
 			"GetValueOrDefault"
 		}).ToHashSet();
+		
 		private static readonly string[] _validProperties = {"Id", "Value"};
+		
 		private static readonly Dictionary<ExpressionType, ConditionOperator> _conditionLookup = new()
 		{
 			{ExpressionType.Equal, ConditionOperator.Equal},
@@ -124,11 +202,6 @@ namespace Microsoft.Xrm.Sdk.Linq
 			{LogicalOperator.Or, LogicalOperator.And}
 		};
 
-		private Entity AttachToContext(Entity entity)
-		{
-			return OrganizationServiceContext.MergeEntity(entity);
-		}
-
 		private object[] BuildProjection(Projection projection, Entity entity, List<LinkLookup> linkLookups)
 		{
 			if (entity == null)
@@ -140,7 +213,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			{
 				return new object[]
 				{
-					AttachToContext(entity)
+					entity
 				};
 			}
 
@@ -271,6 +344,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 				switch (methodName)
 				{
+					default:
+					{
+						throw new NotSupportedException($"The method '{methodName}' cannot follow the method '{beforeMethodName}' or is not supported. Try writing the query in terms of supported methods or call the 'AsEnumerable' or 'ToList' method before calling unsupported methods.");
+					}
 					case nameof(QueryableNoLock.NoLock):
 					{
 						qe.NoLock = true;
@@ -441,7 +518,12 @@ namespace Microsoft.Xrm.Sdk.Linq
 
 		private bool IsValidFollowingMethod(string method, string next)
 		{
-			return _followingMethodLookup.TryGetValue(method, out var source) && source.Contains(next);
+			if (!_followingMethodLookup.TryGetValue(method, out var source))
+			{
+				return false;
+			}
+
+			return source.Contains(next);
 		}
 
 		private bool IsSupportedMethod(string method)
@@ -1433,7 +1515,9 @@ namespace Microsoft.Xrm.Sdk.Linq
 						return GetPropertyValue(propertyMember, expression.Value);
 				}
 			}
-			return exp is UnaryExpression unaryExpression && unaryExpression.NodeType == ExpressionType.Convert ? TranslateExpressionToValue(unaryExpression.Operand) : DynamicInvoke(CompileExpression(Expression.Lambda(exp, parameters)));
+			return exp is UnaryExpression unaryExpression && unaryExpression.NodeType == ExpressionType.Convert 
+				? TranslateExpressionToValue(unaryExpression.Operand) 
+				: DynamicInvoke(CompileExpression(Expression.Lambda(exp, parameters)));
 		}
 
 		[SecuritySafeCritical]
@@ -1498,7 +1582,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 				return;
 			}
 
-			var constantExpression = expression is MethodCallExpression ? expression.GetMethodsPreorder().Last().Arguments[0] as ConstantExpression : expression as ConstantExpression;
+			var constantExpression = expression is MethodCallExpression 
+				? expression.GetMethodsPreorder().Last().Arguments[0] as ConstantExpression 
+				: expression as ConstantExpression;
+
 			if (constantExpression?.Value is IEntityQuery entityQuery)
 			{
 				qe.EntityName = entityQuery.EntityLogicalName;
