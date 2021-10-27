@@ -13,11 +13,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 {
 	internal sealed partial class QueryProvider
 	{
-		private static readonly string[] _followingRoot = new string[1];
-		private static readonly IEnumerable<string> _followingFirst = _followingRoot.Concat(new[]
+		private static readonly IEnumerable<string> _followingFirst = new[]
 		{
 			nameof(Enumerable.ToList)
-		});
+		};
 		private static readonly IEnumerable<string> _followingTake = _followingFirst.Concat(new[]
 		{
 			nameof(Queryable.Select),
@@ -52,10 +51,10 @@ namespace Microsoft.Xrm.Sdk.Linq
 		{
 			nameof(Queryable.Join)
 		});
-		private static readonly IEnumerable<string> _followingGroupJoin = _followingRoot.Concat(new[]
+		private static readonly IEnumerable<string> _followingGroupJoin = new[]
 		{
 			nameof(Queryable.SelectMany)
-		});
+		};
 		private static readonly HashSet<string> _followingCount = new()
 		{
 			nameof(Queryable.Select),
@@ -331,10 +330,6 @@ namespace Microsoft.Xrm.Sdk.Linq
 			{
 				var mce = list[i];
 				var methodName = mce.Method.Name;
-				if (!IsSupportedMethod(methodName))
-				{
-					throw new NotSupportedException($"The method '{methodName}' is not supported.");
-				}
 
 				if (beforeMethodName != null && !IsValidFollowingMethod(beforeMethodName, methodName))
 				{
@@ -346,7 +341,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 				{
 					default:
 					{
-						throw new NotSupportedException($"The method '{methodName}' cannot follow the method '{beforeMethodName}' or is not supported. Try writing the query in terms of supported methods or call the 'AsEnumerable' or 'ToList' method before calling unsupported methods.");
+						throw new NotSupportedException($"The method '{methodName}' is not supported.");
 					}
 					case nameof(QueryableNoLock.NoLock):
 					{
@@ -443,43 +438,61 @@ namespace Microsoft.Xrm.Sdk.Linq
 						break;
 					}
 					case nameof(Queryable.Select):
+					{
 						if (linkLookups != null && !isFirstJoin)
 						{
 							linkLookups.Clear();
 						}
 
 						TranslateEntityName(qe, expression);
-						var operand1 = (mce.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
-						projection = new Projection(methodName, operand1);
-						var expression1 = TranslateSelect(list, i, qe, operand1, ref source);
+						var operand = (mce.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
+						projection = new Projection(methodName, operand);
+						var expression1 = TranslateSelect(list, i, qe, operand, ref source);
 						if (expression1 != null)
 						{
 							return GetQueryExpression(expression1, out throwIfSequenceIsEmpty, out throwIfSequenceNotSingle, out projection, ref source, ref linkLookups);
 						}
 
 						break;
-					case nameof(Queryable.Skip):
-						skip = (int)(mce.Arguments[1] as ConstantExpression).Value;
-						if (skip.HasValue)
-						{
-							var nullable = skip;
-							if ((nullable.GetValueOrDefault() >= 0 ? 0 : nullable.HasValue ? 1 : 0) != 0)
-							{
-								throw new NotSupportedException("Skip operator does not support negative values.");
-							}
-						}
-						break;
-					case nameof(Queryable.Take):
-						take = (int)(mce.Arguments[1] as ConstantExpression).Value;
-						if (take.HasValue)
-						{
-							var nullable = take;
-							if ((nullable.GetValueOrDefault() > 0 ? 0 : nullable.HasValue ? 1 : 0) != 0)
-							{
-								throw new NotSupportedException("Take/Top operators only support positive values.");
-							}
-						}
-						break;
+					}
+					//case nameof(Queryable.Skip):
+					//{
+					//	if (mce.Arguments[1] is ConstantExpression constantExpression)
+					//	{
+					//		qe.PageInfo.PageNumber += Math.Max(0, constantExpression.GetValue<int>());
+					//	}
+					//	//skip = (int)(mce.Arguments[1] as ConstantExpression).Value;
+						
+					//	//if (skip.HasValue)
+					//	//{
+					//	//	var nullable = skip;
+					//	//	if ((nullable.GetValueOrDefault() >= 0 ? 0 : nullable.HasValue ? 1 : 0) != 0)
+					//	//	{
+					//	//		throw new NotSupportedException("Skip operator does not support negative values.");
+					//	//	}
+					//	//}
+					//	break;
+					//}
+					//case nameof(Queryable.Take):
+					//{
+					//	if (mce.Arguments[1] is ConstantExpression constantExpression)
+					//	{
+					//		var value = Math.Max(0, constantExpression.GetValue<int>());
+
+					//		qe.PageInfo.Count = Math.Min(qe.PageInfo.Count, value);
+					//	}
+
+					//	//take = (int)(mce.Arguments[1] as ConstantExpression).Value;
+					//	//if (take.HasValue)
+					//	//{
+					//	//	var nullable = take;
+					//	//	if ((nullable.GetValueOrDefault() > 0 ? 0 : nullable.HasValue ? 1 : 0) != 0)
+					//	//	{
+					//	//		throw new NotSupportedException("Take/Top operators only support positive values.");
+					//	//	}
+					//	//}
+					//	break;
+					//}
 					case nameof(Enumerable.Distinct):
 						qe.Distinct = true;
 						break;
@@ -526,11 +539,6 @@ namespace Microsoft.Xrm.Sdk.Linq
 			return source.Contains(next);
 		}
 
-		private bool IsSupportedMethod(string method)
-		{
-			return _followingMethodLookup.ContainsKey(method);
-		}
-
 		private void BuildPagingInfo(QueryExpression qe, int? skip, int? take)
 		{
 			if (!skip.HasValue && !take.HasValue)
@@ -568,7 +576,7 @@ namespace Microsoft.Xrm.Sdk.Linq
 			qe.ColumnSet = qe.ColumnSet == null || qe.ColumnSet.Columns.Count == 0 ? new ColumnSet(true) : qe.ColumnSet;
 		}
 
-		private struct JoinData
+		private readonly struct JoinData
 		{
 			public ConstantExpression Outer => (ConstantExpression) _methodCallExpression.Arguments[0];
 			public ConstantExpression Inner => (ConstantExpression) _methodCallExpression.Arguments[1];
@@ -1103,19 +1111,15 @@ namespace Microsoft.Xrm.Sdk.Linq
 		{
 			if (IsEntityExpression(exp))
 			{
-				ValidateRootEntity("orderBy", exp, parameterName, linkLookups);
+				ValidateRootEntity(nameof(Queryable.OrderBy), exp, parameterName, linkLookups);
+				
 				var attributeName = TranslateExpressionToAttributeName(exp);
 				qe.AddOrder(attributeName, orderType);
 			}
 			else
 			{
-				TranslateNonEntityExpressionOrderBy(qe, exp, orderType);
+				throw new NotSupportedException("The 'orderBy' call must specify property names.");
 			}
-		}
-
-		private void TranslateNonEntityExpressionOrderBy(QueryExpression qe, Expression exp, OrderType orderType)
-		{
-			throw new NotSupportedException("The 'orderBy' call must specify property names.");
 		}
 
 		private void ValidateRootEntity(string operationName, Expression exp, string parameterName, List<LinkLookup> linkLookups)

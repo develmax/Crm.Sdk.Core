@@ -123,6 +123,58 @@ namespace Crm.Sdk.Core.Linq.Tests
 		}
 
 		[TestMethod()]
+		public void Skip()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1, Count = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			}, new [] {new Contact()});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Skip(1).ToList();
+		}
+
+		[TestMethod()]
+		public void Take()
+		{
+			var qe = new QueryExpression("contact")
+			{
+				ColumnSet = {AllColumns = true},
+				PageInfo = {PageNumber = 1, Count = 1}
+			};
+
+			var crm = CreateOrganizationService(request =>
+			{
+				Assert.AreEqual("RetrieveMultiple", request.RequestName);
+
+				var queryExpression = request.Parameters["Query"] as QueryExpression;
+				Assert.IsNotNull(queryExpression);
+
+				EqualEx.AreEqual(qe, queryExpression);
+			}, new [] {new Contact()});
+
+			var context = new OrganizationServiceContext(crm);
+
+			var query = context.CreateQuery<Contact>();
+
+			var a = query.Take(1).ToList();
+		}
+
+		[TestMethod()]
 		public void Cast_ToList()
 		{
 			var qe = new QueryExpression("contact")
