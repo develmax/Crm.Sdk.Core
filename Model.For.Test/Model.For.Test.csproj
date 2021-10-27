@@ -3,12 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
+	
+	<PropertyGroup>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup> 
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Xrm.Sdk\Microsoft.Xrm.Sdk.csproj" />
   </ItemGroup>
+
 </Project>
